@@ -148,6 +148,108 @@ NAN       NAN      NAN       NAN       NAN       NAN
     efc_gasoline_passenger_car_fc.shape = (1, 13, 6)
 
 
+    # Data table to compute hot emission factor for diesel passenger cars from
+    # copert_class Euro 1 to Euro 6c, except for FC.  (Ref. EEA emission
+    # inventory guidebook 2013, part 1.A.3.b. road transportation, version
+    # updated in Sept 2014, page 65, Table 3-47) The categories of engine
+    # capacity is < 1.4 l, 1.4 - 2.0 l, > 2.0 l.  If in the table, a line of
+    # NAN signifies that there is no formula for calculating the emission
+    # factor for this category of vehicle type or engine capacity according to
+    # the coefficient table.  The "0.0" in the data table signifies vacant
+    # values in table 3-47 of reference document.
+    emission_factor_string \
+        = """
+NAN        NAN        NAN        NAN        NAN        NAN
+9.96e-1    0.0        -1.88e-2   0.0        1.09e-4    0.0
+9.96e-1    0.0        -1.88e-2   0.0        1.09e-4    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+9.00e-1    0.0        -1.74e-2   0.0        8.77e-5    0.0
+9.00e-1    0.0        -1.74e-2   0.0        8.77e-5    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+1.69e-1    0.0        -2.92e-3   0.0        1.25e-5    1.1
+1.69e-1    0.0        -2.92e-3   0.0        1.25e-5    1.1
+NAN        NAN        NAN        NAN        NAN        NAN
+NAN        NAN        NAN        NAN        NAN        NAN
+NAN        NAN        NAN        NAN        NAN        NAN
+-8.66e13   1.76e14    2.47e13    3.18e12    -1.94e11   8.33e13
+-8.66e13   1.76e14    2.47e13    3.18e12    -1.94e11   8.33e13
+-8.66e13   1.76e14    2.47e13    3.18e12    -1.94e11   8.33e13
+-3.58e-11  1.23e-8    -1.49e-6   8.58e-5    -2.94e-3   1.03e-1
+-3.58e-11  1.23e-8    -1.49e-6   8.58e-5    -2.94e-3   1.03e-1
+-3.58e-11  1.23e-8    -1.49e-6   8.58e-5    -2.94e-3   1.03e-1
+-3.58e-11  1.23e-8    -1.49e-6   8.58e-5    -2.94e-3   1.03e-1
+-3.58e-11  1.23e-8    -1.49e-6   8.58e-5    -2.94e-3   1.03e-1
+-3.58e-11  1.23e-8    -1.49e-6   8.58e-5    -2.94e-3   1.03e-1
+NAN        NAN        NAN        NAN        NAN        NAN
+1.42e-1    1.38e-2    -2.01e-3   -1.90e-5   1.15e-5    0.0
+1.59e-1    0.0        -2.46e-3   0.0        1.21e-5    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+1.61e-1    7.46e-2    -1.21e-3   -3.35e-4   3.63e-6    0.0
+5.01e4     3.80e4     8.03e3     1.15e3     -2.66e1    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+9.65e-2    1.03e-1    -2.38e-4   -7.24e-5   1.93e-6    0.0
+9.12e-2    0.0        -1.68e-3   0.0        8.94e-6    0.0
+3.47e-2    2.69e-2    -6.41e-4   1.59e-3    1.12e-5    0.0
+3.47e-2    2.69e-2    -6.41e-4   1.59e-3    1.12e-5    0.0
+3.47e-2    2.69e-2    -6.41e-4   1.59e-3    1.12e-5    0.0
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+1.04e32    4.60e33    1.53e32    2.92e32    -3.83e28   1.96e32
+NAN        NAN        NAN        NAN        NAN        NAN
+3.1        1.41e-1    -6.18e-3   -5.03e-4   4.22e-4    0.0
+3.1        1.41e-1    -6.18e-3   -5.03e-4   4.22e-4    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+2.4        7.67e-2    -1.16e-2   -5.0e-4    1.2e-4     0.0
+2.4        7.67e-2    -1.16e-2   -5.0e-4    1.2e-4     0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+2.82       1.98e-1    6.69e-2    -1.43e-3   -4.63e-4   0.0
+2.82       1.98e-1    6.69e-2    -1.43e-3   -4.63e-4   0.0
+1.11       0.0        -2.02e-2   0.0        1.48e-4    0.0
+1.11       0.0        -2.02e-2   0.0        1.48e-4    0.0
+1.11       0.0        -2.02e-2   0.0        1.48e-4    0.0
+9.46e-1    4.26e-3    -1.14e-2   -5.15e-5   6.67e-5    1.92
+9.46e-1    4.26e-3    -1.14e-2   -5.15e-5   6.67e-5    1.92
+9.46e-1    4.26e-3    -1.14e-2   -5.15e-5   6.67e-5    1.92
+4.36e-1    1.0e-2     -5.39e-3   -1.02e-4   2.90e-5    -4.61e-1
+4.36e-1    1.0e-2     -5.39e-3   -1.02e-4   2.90e-5    -4.61e-1
+4.36e-1    1.0e-2     -5.39e-3   -1.02e-4   2.90e-5    -4.61e-1
+2.33e-1    1.00e-2    -2.88e-3   -1.02e-4   1.55e-5    -2.46e-1
+2.33e-1    1.00e-2    -2.88e-3   -1.02e-4   1.55e-5    -2.46e-1
+2.33e-1    1.00e-2    -2.88e-3   -1.02e-4   1.55e-5    -2.46e-1
+NAN        NAN        NAN        NAN        NAN        NAN
+1.14e-1    0.0        -2.33e-3   0.0        2.26e-5    0.0
+1.14e-1    0.0        -2.33e-3   0.0        2.26e-5    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+8.66e-2    0.0        -1.42e-3   0.0        1.06e-5    0.0
+8.66e-2    0.0        -1.42e-3   0.0        1.06e-5    0.0
+NAN        NAN        NAN        NAN        NAN        NAN
+5.15e-2    0.0        -8.8e-4    0.0        8.12e-6    0.0
+5.15e-2    0.0        -8.8e-4    0.0        8.12e-6    0.0
+4.50e-2    0.0        -5.39e-4   0.0        3.48e-6    0.0
+4.50e-2    0.0        -5.39e-4   0.0        3.48e-6    0.0
+4.50e-2    0.0        -5.39e-4   0.0        3.48e-6    0.0
+1.17e-3    1.06e1     -6.48      5.67e-1    1.23e-2    0.0
+1.17e-3    1.06e1     -6.48      5.67e-1    1.23e-2    0.0
+1.17e-3    1.06e1     -6.48      5.67e-1    1.23e-2    0.0
+-1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
+-1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
+-1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
+-1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
+-1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
+-1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
+   """
+
+    efc_diesel_passenger_car\
+        = numpy.fromstring (emission_factor_string, sep = ' ')
+    efc_diesel_passenger_car.shape = (4,7,3,6)
+
+
     def __init__(self):
         """Constructor.
         """
@@ -378,7 +480,7 @@ NAN       NAN      NAN       NAN       NAN       NAN
                             return 1.999 - 0.034 * V + 0.000214 * V**2
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return -0.926 + 0.719 * math.log(V)
+                            return - 0.926 + 0.719 * math.log(V)
                         else:
                             return 1.387 + 0.0014 * V + 0.000247 * V**2
             elif copert_class == self.class_Open_loop:
@@ -445,3 +547,87 @@ NAN       NAN      NAN       NAN       NAN       NAN
                         else:
                             return a * V**5 + b * V**4 + c * V**3 \
                                 + d * V**2 + e * V + f
+
+
+    # Definition of Hot Emission Factor (HEF) for diesel passenger cars.
+    def HEFDieselPassengerCar(self, pollutant, speed, copert_class,
+                                engine_capacity, **kwargs):
+        """Computes the hot emissions factor in g/km for diesel passenger
+        cars, except for fuel consumption-dependent emissions
+        (SO2,Pb,heavy metals).
+
+        @param pollutant The pollutant for which the emissions are
+        computed. It can be any of Copert.pollutant_*.
+
+        @param speed The average velocity of the vehicles in kilometers per
+        hour.
+
+        @param copert_class The vehicle class, which can be any of the
+        Copert.class_* attributes. They are introduced in the EMEP/EEA
+        emission inventory guidebook.
+
+        @param engine_capacity The engine capacity in liter.
+        """
+
+        V = speed
+
+        if V == 0.0:
+            return 0.0
+        elif V < 10. or V > 130.:
+            raise Exception, "There is no formula to calculate hot " \
+                "emission factors when the speed is lower than 10 km/h " \
+                "or higher than 130 km/h."
+        else:
+            if copert_class < 0:
+                if pollutant == self.pollutant_CO:
+                    return 5.41301 * V**(-0.574)
+                elif pollutant == self.pollutant_NOx:
+                    if engine_capacity <= 2.0:
+                        return 0.918 - 0.014 * V + 0.000101 * V**2
+                    else:
+                        return 1.331 - 0.018 * V + 0.000133 * V**2
+                elif pollutant == self.pollutant_VOC:
+                    return 4.61 * V**(-0.937)
+                elif pollutant == self.pollutant_PM:
+                    return 0.45 - 0.0086 * V + 0.000058 * V**2
+                elif pollutant == self.pollutant_FC:
+                    return 118.489 - 2.084 * V + 0.014 * V**2
+            else:
+                if engine_capacity < 1.4:
+                    a, b, c, d, e, f = self.efc_diesel_passenger_car\
+                                       [pollutant][copert_class][0]
+                    if math.isnan(a) and copert_class <= self.class_Euro_3:
+                        raise Exception, "There is no formula to calculate " \
+                            "hot emission factors of " \
+                            + self.plot_pollutant[pollutant] \
+                            + ", for diesel passenger cars of copert class " \
+                            + self.plot_class_euro[copert_class] \
+                            + ", with an engine capacity lower than 1.4 l."
+                elif engine_capacity < 2.0:
+                    a, b, c, d, e, f = self.efc_diesel_passenger_car\
+                                       [pollutant][copert_class][1]
+                else:
+                    a, b, c, d, e, f = self.efc_diesel_passenger_car\
+                                       [pollutant][copert_class][2]
+                if copert_class <= self.class_Euro_4:
+                    if pollutant == self.pollutant_CO \
+                       and copert_class == self.class_Euro_4:
+                        return 17.5e-3 + 86.42 \
+                            * (1 + math.exp(-(V + 117.67) / (-21.99)))**(-1)
+                    else:
+                        return f / V \
+                            + (a + c * V + e * V**2) / (1 + b * V + d * V**2)
+                elif copert_class == self.class_Euro_5:
+                    if pollutant == self.pollutant_PM:
+                        return a + (b / (1 + math.exp(((-1)*c) \
+                            + d * math.log(V) + e * V)))
+                    else:
+                        return (a + c * V + e * V**2 + f / V) \
+                            / (1 + b * V + d * V**2)
+                else:
+                    if pollutant == self.pollutant_CO:
+                        return a * V**5 + b * V**4 + c * V**3 + d * V**2 \
+                            + e * V + f
+                    else:
+                        return (a + c * V + e * V**2 + f / V) \
+                            / (1 + b * V + d * V**2)
