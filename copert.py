@@ -267,6 +267,7 @@ NAN        NAN        NAN        NAN        NAN        NAN
 -1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
    """
 
+    # Emission factor coefficient ("efc"), for diesel passenger cars.
     efc_diesel_passenger_car\
         = numpy.fromstring (emission_factor_string, sep = ' ')
     efc_diesel_passenger_car.shape = (4,7,3,6)
