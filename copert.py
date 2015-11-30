@@ -58,6 +58,11 @@ class Copert:
     engine_type_moto_tow_stroke = 7
     engine_type_moto_four_stroke = 8
 
+    # Definition of the engine capacity used by COPERT.
+    engine_capacity_less_1_4 = 0
+    engine_capacity_from_1_4_to_2 = 1
+    engine_capacity_more_2 = 2
+
     # Definition of the vehicle type used by COPERT.
     vehicle_type_passenger_car = 0
     vehicle_type_light_commercial_vehicule = 1
@@ -595,7 +600,8 @@ NAN        NAN        NAN        NAN        NAN        NAN
             else:
                 if engine_capacity < 1.4:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
-                                       [pollutant][copert_class][0]
+                                       [pollutant][copert_class]\
+                                       [self.engine_capacity_less_1_4]
                     if math.isnan(a) and copert_class <= self.class_Euro_3:
                         raise Exception, "There is no formula to calculate " \
                             "hot emission factors of " \
@@ -605,10 +611,13 @@ NAN        NAN        NAN        NAN        NAN        NAN
                             + ", with an engine capacity lower than 1.4 l."
                 elif engine_capacity < 2.0:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
-                                       [pollutant][copert_class][1]
+                                       [pollutant][copert_class]\
+                                       [self.engine_capacity_from_1_4_to_2]
                 else:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
-                                       [pollutant][copert_class][2]
+                                       [pollutant][copert_class]\
+                                       [self.engine_capacity_more_2]
+
                 if copert_class <= self.class_Euro_4:
                     if pollutant == self.pollutant_CO \
                        and copert_class == self.class_Euro_4:
