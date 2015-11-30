@@ -155,8 +155,8 @@ NAN       NAN      NAN       NAN       NAN       NAN
 
     # Data table to compute hot emission factor for diesel passenger cars from
     # copert_class Euro 1 to Euro 6c, except for FC.  (Ref. EEA emission
-    # inventory guidebook 2013, part 1.A.3.b. road transportation, version
-    # updated in Sept 2014, page 65, Table 3-47) The categories of engine
+    # inventory guidebook 2013, part 1.A.3.b Road transportation, version
+    # updated in Sept. 2014, page 65, Table 3-47) The categories of engine
     # capacity is < 1.4 l, 1.4 - 2.0 l, > 2.0 l.  If in the table, a line of
     # NAN signifies that there is no formula for calculating the emission
     # factor for this category of vehicle type or engine capacity according to
