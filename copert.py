@@ -88,6 +88,23 @@ class Copert:
     speed_type_highway = 130.
 
 
+    # Generic functions to calculate hot emissions factors for gasoline and
+    # diesel passengers cars (ref. EEA emission inventory guidebook 2013, part
+    # 1.A.3.b, Road transportation, version updated in Sept. 2014, page 60 and
+    # page 65).
+    EF_25 = lambda self, a, b, c, d, e, f, V : (a + c * V + e * V**2) \
+            / (1 + b * V + d * V**2)
+    EF_26 = lambda self, a, b, c, d, e, f, V : a * V**5 + b * V**4 \
+            + c * V**3 + d * V**2 + e * V + f
+    EF_27 = lambda self, a, b, c, d, e, f, V : (a + c * V + e * V**2 + f / V) \
+            / (1 + b * V + d * V**2)
+    EF_28 = lambda self, a, b, c, d, e, f, V : a * V**b + c * V**d
+    EF_30 = lambda self, a, b, c, d, e, f, V: (a + c * V + e * V**2) \
+            / (1 + b * V + d * V**2) + f / V
+    EF_31 = lambda self, a, b, c, d, e, f, V : a + (b / (1 + math.exp((-1*c) \
+                        + d * math.log(V) + e * V)))
+
+
     # Data table (ref. EEA emission inventory guidebook 2013, part 1.A.3.b,
     # Road transportation, version updated in Sept. 2014, page 60, Table 3-41,
     # except for fuel consumption). It is assumed that if there is no value
@@ -515,7 +532,7 @@ NAN        NAN        NAN        NAN        NAN        NAN
                     = self.efc_gasoline_passenger_car[pollutant][copert_class]
                 if copert_class <= self.class_Euro_4:
                     if pollutant != self.pollutant_PM:
-                        return (a + c * V + e * V**2) / (1 + b * V + d * V**2)
+                        return self.EF_25(a, b, c, d, e, f, V)
                     else:
                         if copert_class <= self.class_Euro_2:
                             if V <= self.speed_type_urban:
@@ -541,17 +558,14 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO \
                        or pollutant == self.pollutant_PM:
-                        return a * V**5 + b * V**4 + c * V**3 + d * V**2 \
-                            + e * V + f
+                        return self.EF_26(a, b, c, d, e, f, V)
                     elif pollutant == self.pollutant_NOx:
-                        return (a + c * V + e * V**2 + f / V) \
-                            / (1 + b*V + d * V**2)
+                        return self.EF_27(a, b, c, d, e, f, V)
                     elif pollutant == self.pollutant_HC:
                         if copert_class == self.class_Euro_5:
-                            return a * V**b + c * V**d
+                            return self.EF_28(a, b, c, d, e, f, V)
                         else:
-                            return a * V**5 + b * V**4 + c * V**3 \
-                                + d * V**2 + e * V + f
+                            return self.EF_26(a, b, c, d, e, f, V)
 
 
     # Definition of Hot Emission Factor (HEF) for diesel passenger cars.
@@ -624,19 +638,14 @@ NAN        NAN        NAN        NAN        NAN        NAN
                         return 17.5e-3 + 86.42 \
                             * (1 + math.exp(-(V + 117.67) / (-21.99)))**(-1)
                     else:
-                        return f / V \
-                            + (a + c * V + e * V**2) / (1 + b * V + d * V**2)
+                        return self.EF_30(a, b, c, d, e, f, V)
                 elif copert_class == self.class_Euro_5:
                     if pollutant == self.pollutant_PM:
-                        return a + (b / (1 + math.exp(((-1)*c) \
-                            + d * math.log(V) + e * V)))
+                        return self.EF_31(a, b, c, d, e, f, V)
                     else:
-                        return (a + c * V + e * V**2 + f / V) \
-                            / (1 + b * V + d * V**2)
+                        return self.EF_27(a, b, c, d, e, f, V)
                 else:
                     if pollutant == self.pollutant_CO:
-                        return a * V**5 + b * V**4 + c * V**3 + d * V**2 \
-                            + e * V + f
+                        return self.EF_26(a, b, c, d, e, f, V)
                     else:
-                        return (a + c * V + e * V**2 + f / V) \
-                            / (1 + b * V + d * V**2)
+                        return self.EF_27(a, b, c, d, e, f, V)
