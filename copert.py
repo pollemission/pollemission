@@ -92,17 +92,17 @@ class Copert:
     # diesel passengers cars (ref. EEA emission inventory guidebook 2013, part
     # 1.A.3.b, Road transportation, version updated in Sept. 2014, page 60 and
     # page 65).
-    EF_25 = lambda self, a, b, c, d, e, f, V : (a + c * V + e * V**2) \
-            / (1 + b * V + d * V**2)
-    EF_26 = lambda self, a, b, c, d, e, f, V : a * V**5 + b * V**4 \
-            + c * V**3 + d * V**2 + e * V + f
-    EF_27 = lambda self, a, b, c, d, e, f, V : (a + c * V + e * V**2 + f / V) \
-            / (1 + b * V + d * V**2)
+    EF_25 = lambda self, a, b, c, d, e, f, V : \
+            (a + c * V + e * V**2) / (1 + b * V + d * V**2)
+    EF_26 = lambda self, a, b, c, d, e, f, V : \
+            a * V**5 + b * V**4 + c * V**3 + d * V**2 + e * V + f
+    EF_27 = lambda self, a, b, c, d, e, f, V : \
+            (a + c * V + e * V**2 + f / V) / (1 + b * V + d * V**2)
     EF_28 = lambda self, a, b, c, d, e, f, V : a * V**b + c * V**d
-    EF_30 = lambda self, a, b, c, d, e, f, V: (a + c * V + e * V**2) \
-            / (1 + b * V + d * V**2) + f / V
-    EF_31 = lambda self, a, b, c, d, e, f, V : a + (b / (1 + math.exp((-1*c) \
-                        + d * math.log(V) + e * V)))
+    EF_30 = lambda self, a, b, c, d, e, f, V: \
+            (a + c * V + e * V**2) / (1 + b * V + d * V**2) + f / V
+    EF_31 = lambda self, a, b, c, d, e, f, V : \
+            a + (b / (1 + math.exp((-1*c) + d * math.log(V) + e * V)))
 
 
     # Data table (ref. EEA emission inventory guidebook 2013, part 1.A.3.b,
