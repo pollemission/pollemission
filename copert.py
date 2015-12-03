@@ -80,13 +80,19 @@ class Copert:
     pollutant_FC = 4
     pollutant_VOC = 5
 
-
     # Definition of a general range of average speed for different road types,
     # in km/h.
     speed_type_urban = 60.
     speed_type_rural = 90.
     speed_type_highway = 130.
 
+    # Basic generic functions.
+    constant = lambda self, a : a
+    linear = lambda self, a, b, x : a * x + b
+    quadratic = lambda self, a, b, c, x : a * x**2 + b * x + c
+    power = lambda self, a, b, x : a * x**b
+    exponential = lambda self, a, b, x : a * math.exp(b * x)
+    logarithm = lambda self, a, b, x : a + b * math.log(x)
 
     # Generic functions to calculate hot emissions factors for gasoline and
     # diesel passengers cars (ref. EEA emission inventory guidebook 2013, part
@@ -377,21 +383,21 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if V < 100.:
-                            return 281. * V**(-0.63)
+                            return self.power(281., -0.63, V)
                         else:
-                            return 0.112 * V + 4.32
+                            return self.linear(0.112, 4.32, V)
                     elif pollutant == self.pollutant_VOC:
                         if V < 100.:
-                            return 30.34 * V**(-0.693)
+                            return self.power(30.34, -0.693, V)
                         else:
-                            return 1.247
+                            return self.constant(1.247)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return 1.173 + 0.0225 * V - 0.00014 * V**2
+                            return self.quadratic(-0.00014, 0.0225, 1.173, V)
                         elif engine_capacity < 2.0:
-                            return 1.360 + 0.0217 * V - 0.00004 * V**2
+                            return self.quadratic(-0.00004, 0.0217, 1.360, V)
                         else:
-                            return 1.5 + 0.03 * V + 0.0001 * V**2
+                            return self.quadratic(0.0001, 0.03, 1.5, V)
             elif copert_class == self.class_ECE_15_00_or_01:
                 if engine_capacity < 0.8:
                     raise Exception, "There is no formula to calculate hot "\
@@ -400,21 +406,21 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if V < 50.:
-                            return 313. * V**(-0.76)
+                            return self.power(313., -0.76, V)
                         else:
-                            return 27.22 - 0.406 * V + 0.0032 * V**2
+                            return self.quadratic(0.0032, -0.406, 27.22, V)
                     elif pollutant == self.pollutant_VOC:
                         if V < 50.:
-                            return 24.99 * V**(-0.704)
+                            return self.power(24.99, -0.704, V)
                         else:
-                            return 4.85 * V**(-0.318)
+                            return self.power(4.85, -0.318, V)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return 1.173 + 0.0225 * V - 0.00014 * V**2
+                            return self.quadratic(-0.00014, 0.0225, 1.173, V)
                         elif engine_capacity < 2.0:
-                            return 1.360 + 0.0217 * V - 0.00004 * V**2
+                            return self.quadratic(-0.00004, 0.0217, 1.360, V)
                         else:
-                            return 1.5 + 0.03 * V + 0.0001 * V**2
+                            return self.quadratic(0.0001, 0.03, 1.5, V)
             elif copert_class == self.class_ECE_15_02:
                 if engine_capacity < 0.8:
                     raise Exception, "There is no formula to calculate hot " \
@@ -423,21 +429,21 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if V < 60.:
-                            return 300 * V**(-0.797)
+                            return self.power(300, -0.797, V)
                         else:
-                            return 26.26 - 0.44 * V + 0.0026 * V**2
+                            return self.quadratic(0.0026, -0.44, 26.26, V)
                     elif pollutant == self.pollutant_VOC:
                         if V < 60.:
-                            return 25.75 * V**(-0.714)
+                            return self.power(25.75, -0.714, V)
                         else:
-                            return 1.95 - 0.019 * V + 0.00009 * V**2
+                            return self.quadratic(0.00009, -0.019, 1.95, V)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return 1.479 - 0.0037 * V + 0.00018 * V**2
+                            return self.quadratic(0.00018, -0.0037, 1.479, V)
                         elif engine_capacity < 2.0:
-                            return 1.663 - 0.0038 * V + 0.0002 * V**2
+                            return self.quadratic(0.0002, -0.0038, 1.663, V)
                         else:
-                            return 1.87 - 0.0039 * V + 0.00022 * V**2
+                            return self.quadratic(0.00022, -0.0039, 1.87, V)
             elif copert_class == self.class_ECE_15_03:
                 if engine_capacity < 0.8:
                     raise Exception, "There is no formula to calculate hot "\
@@ -446,21 +452,21 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if V < 20.:
-                            return 161.36 - 45.62 * math.log(V)
+                            return self.logarithm(161.36, -45.62, V)
                         else:
-                            return 37.92 - 0.68 * V + 0.00377 * V**2
+                            return self.quadratic(0.00377, -0.68, 37.92, V)
                     elif pollutant == self.pollutant_VOC:
                         if V < 60.:
-                            return 25.75 * V**(-0.714)
+                            return self.power(25.75, -0.714, V)
                         else:
-                            return 1.95 - 0.019 * V + 0.00009 * V**2
+                            return self.quadratic(0.00009, -0.019, 1.95, V)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return 1.616 - 0.0084 * V + 0.00025 * V**2
+                            return self.quadratic(0.00025, -0.0084, 1.616, V)
                         elif engine_capacity < 2.0:
-                            return 1.29 * math.exp(0.0099 * V)
+                            return self.exponential(1.29, 0.0099, V)
                         else:
-                            return 2.784 - 0.0112 * V + 0.000294 * V**2
+                            return self.quadratic(0.000294, -0.0112, 2.784, V)
             elif copert_class == self.class_ECE_15_04:
                 if engine_capacity < 0.8:
                     raise Exception, "There is no formula to calculate hot "\
@@ -469,21 +475,21 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if V < 60.:
-                            return 260.788 * V**(-0.91)
+                            return self.power(260.788, -0.91, V)
                         else:
-                            return 14.653 - 0.22 * V + 0.001163 * V**2
+                            return self.quadratic(0.001163, -0.22, 14.653, V)
                     elif pollutant == self.pollutant_VOC:
                         if V < 60.:
-                            return 19.079 * V**(-0.693)
+                            return self.power(19.079, -0.693, V)
                         else:
-                            return 2.608 - 0.037 * V + 0.000179 * V**2
+                            return self.quadratic(0.000179, -0.037, 2.608, V)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return 1.432 + 0.003 * V + 0.000097 * V**2
+                            return self.quadratic(0.000097, 0.003, 1.432, V)
                         elif engine_capacity < 2.0:
-                            return 1.484 + 0.013 * V + 0.000074 * V**2
+                            return self.quadratic(0.000074, 0.013, 1.484, V)
                         else:
-                            return 2.427 - 0.014 * V + 0.000266 * V**2
+                            return self.quadratic(0.000266, -0.014, 2.427, V)
             elif copert_class == self.class_Improved_Conventional:
                 if engine_capacity < 0.8 or engine_capacity > 2.0:
                     raise Exception, "There is no formula to calculate hot "\
@@ -493,19 +499,19 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if engine_capacity < 1.4:
-                            return 14.577 - 0.294 * V + 0.002478 * V**2
+                            return self.quadratic(0.002478, -0.294, 14.577, V)
                         else:
-                            return 8.273 - 0.151 * V + 0.000957 * V**2
+                            return self.quadratic(0.000957, -0.151, 8.273, V)
                     elif pollutant == self.pollutant_VOC:
                         if engine_capacity < 1.4:
-                            return 2.189 - 0.034 * V + 0.000201 * V**2
+                            return self.quadratic(0.000201, -0.034, 2.189, V)
                         else:
-                            return 1.999 - 0.034 * V + 0.000214 * V**2
+                            return self.quadratic(0.000214, -0.034, 1.999, V)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return - 0.926 + 0.719 * math.log(V)
+                            return self.logarithm(-0.926, 0.719, V)
                         else:
-                            return 1.387 + 0.0014 * V + 0.000247 * V**2
+                            return self.quadratic(0.000247, 0.0014, 1.387, V)
             elif copert_class == self.class_Open_loop:
                 if engine_capacity < 0.8 or engine_capacity > 2.0:
                     raise Exception, "There is no formula to calculate hot " \
@@ -515,19 +521,19 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 else:
                     if pollutant == self.pollutant_CO:
                         if engine_capacity < 1.4:
-                            return 17.882 - 0.377 * V + 0.002825 * V**2
+                            return self.quadratic(0.002825, -0.377, 17.882, V)
                         else:
-                            return 9.446 - 0.230 * V + 0.002029 * V**2
+                            return self.quadratic(0.002029, -0.230, 9.446, V)
                     elif pollutant == self.pollutant_VOC:
                         if engine_capacity < 1.4:
-                            return 2.185 - 0.0423 * V + 0.000256 * V**2
+                            return self.quadratic(0.000256, -0.0423, 2.185, V)
                         else:
-                            return 0.0808 - 0.016 * V + 0.000099 * V**2
+                            return self.quadratic(0.000099, -0.016, 0.808, V)
                     elif pollutant == self.pollutant_NOx:
                         if engine_capacity < 1.4:
-                            return -0.921 + 0.616 * math.log(V)
+                            return self.logarithm(-0.921, 0.616, V)
                         else:
-                            return -0.761 + 0.515 * math.log(V)
+                            return self.logarithm(-0.761, 0.515, V)
             else:
                 a, b, c, d, e, f \
                     = self.efc_gasoline_passenger_car[pollutant][copert_class]
@@ -537,25 +543,25 @@ NAN        NAN        NAN        NAN        NAN        NAN
                     else:
                         if copert_class <= self.class_Euro_2:
                             if V <= self.speed_type_urban:
-                                return 3.22e-3
+                                return self.constant(3.22e-3)
                             elif V <= self.speed_type_rural:
-                                return 1.84e-3
+                                return self.constant(1.84e-3)
                             else:
-                                return 1.90e-3
+                                return self.constant(1.90e-3)
                         elif copert_class <= self.class_Euro_4:
                             if V <= self.speed_type_urban:
-                                return 1.28e-3
+                                return self.constant(1.28e-3)
                             elif V <= self.speed_type_rural:
-                                return 8.36e-4
+                                return self.constant(8.36e-4)
                             else:
-                                return 1.19e-3
+                                return self.constant(1.19e-3)
                         else:
                             if V <= self.speed_type_urban:
-                                return 6.6e-3
+                                return self.constant(6.6e-3)
                             elif V <= self.speed_type_rural:
-                                return 2.96e-3
+                                return self.constant(2.96e-3)
                             else:
-                                return 6.95e-3
+                                return self.constant(6.95e-3)
                 else:
                     if pollutant == self.pollutant_CO \
                        or pollutant == self.pollutant_PM:
@@ -600,18 +606,18 @@ NAN        NAN        NAN        NAN        NAN        NAN
         else:
             if copert_class < 0:
                 if pollutant == self.pollutant_CO:
-                    return 5.41301 * V**(-0.574)
+                    return self.power(5.41301, -0.574, V)
                 elif pollutant == self.pollutant_NOx:
                     if engine_capacity <= 2.0:
-                        return 0.918 - 0.014 * V + 0.000101 * V**2
+                        return self.quadratic(0.000101, -0.014, 0.918, V)
                     else:
-                        return 1.331 - 0.018 * V + 0.000133 * V**2
+                        return self.quadratic(0.000133, -0.018, 1.331, V)
                 elif pollutant == self.pollutant_VOC:
-                    return 4.61 * V**(-0.937)
+                    return self.power(4.61, -0.937, V)
                 elif pollutant == self.pollutant_PM:
-                    return 0.45 - 0.0086 * V + 0.000058 * V**2
+                    return self.quadratic(0.000058, -0.0086, 0.45, V)
                 elif pollutant == self.pollutant_FC:
-                    return 118.489 - 2.084 * V + 0.014 * V**2
+                    return self.quadratic(0.014, -2.084, 118.489, V)
             else:
                 if engine_capacity < 1.4:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
