@@ -24,7 +24,7 @@ import copert
 compute = copert.Copert()
 
 print compute.Emission(pollutant = compute.pollutant_CO,
-                       speed = 1300.,
+                       speed = 40.,
                        distance = 1.,
                        vehicle_type = compute.vehicle_type_passenger_car,
                        engine_type = compute.engine_type_gasoline,
