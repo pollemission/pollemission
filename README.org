@@ -1,0 +1,36 @@
+#+TITLE:	Pollemission
+
+* 1. What's this?
+
+The main purpose of Pollemission is to compute air pollutant emissions due to road transport, following COPERT formulae. These are described in the EMEP/EEA air pollutant emission inventory guide book, whose latest version dates to 2013 (see http://www.eea.europa.eu/publications/emep-eea-guidebook-2013).
+
+Main features:
+
+  - Calculating the emission factors for different categories of vehicles (passenger cars, heavy-duty vehicles, etc.), for each type of air pollutant: CO, NOx, HC and PM.
+  - Plotting the evolution of emission factors against the vehicle speed and European emission standards (Pre-Euro, Euro 1, Euro 2, ..., Euro 6C), for each kind of air pollutant.
+  - For a given road network, computing the total air pollutant emissions of each kind of pollutant for each link in the network, and plotting the results in a network map where the level of emissions is represented by colors and linewidth.
+
+* 2. Language and package required
+
+The scripts are written in Python (version 2+), and the required packages are:
+  - numpy
+  - matplotlib
+
+* 3. Files
+
+** 3.1 copert.py
+It is the definition of the class Copert, which implements COPERT formulae for road transport emissions to compute air pollutant emission factors.
+
+** 3.2 example.py
+It is an example script to show simple examples for how to launch the program. Type =python example.py= to launch it.
+
+* 4. Quick example
+
+** 4.1 Computation of emission factors for a specific vehicle
+Assume you want to compute the hot emission factor for CO, of a gasoline passenger car, whose average speed is 60, emission standard is Euro 4 and with engine capacity 1.4 l. Under Python shell, the result in g/km/veh is obtained this way:
+#+BEGIN_SRC python
+>>> import copert
+>>> c = copert.Copert()
+>>> print c.HEFGasolinePassengerCar(pollutant = c.pollutant_CO, speed = 60, copert_class = c.class_Euro_4, engine_capacity = 1.4)
+0.247392398993
+#+END_SRC
