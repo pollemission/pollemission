@@ -548,20 +548,20 @@ NAN        NAN        NAN        NAN        NAN        NAN
                                 return self.constant(1.84e-3)
                             else:
                                 return self.constant(1.90e-3)
-                        elif copert_class <= self.class_Euro_4:
-                            if V <= self.speed_type_urban:
-                                return self.constant(1.28e-3)
-                            elif V <= self.speed_type_rural:
-                                return self.constant(8.36e-4)
-                            else:
-                                return self.constant(1.19e-3)
-                        else:
+                        elif copert_class == self.class_Euro_3_GDI:
                             if V <= self.speed_type_urban:
                                 return self.constant(6.6e-3)
                             elif V <= self.speed_type_rural:
                                 return self.constant(2.96e-3)
                             else:
                                 return self.constant(6.95e-3)
+                        else:
+                            if V <= self.speed_type_urban:
+                                return self.constant(1.28e-3)
+                            elif V <= self.speed_type_rural:
+                                return self.constant(8.36e-4)
+                            else:
+                                return self.constant(1.19e-3)
                 else:
                     if pollutant == self.pollutant_CO \
                        or pollutant == self.pollutant_PM:
