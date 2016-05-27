@@ -30,22 +30,27 @@ class Copert:
 
     # Definition of the vehicle classes used by COPERT.
     ## Pre-euro
-    class_PRE_ECE = -7
-    class_ECE_15_00_or_01 = -6
-    class_ECE_15_02 = -5
-    class_ECE_15_03 = -4
-    class_ECE_15_04 = -3
-    class_Improved_Conventional = -2
-    class_Open_loop = -1
+    class_PRE_ECE = 0
+    class_ECE_15_00_or_01 = 1
+    class_ECE_15_02 = 2
+    class_ECE_15_03 = 3
+    class_ECE_15_04 = 4
+    class_Improved_Conventional = 5
+    class_Open_loop = 6
     ## Euro 1 and later
-    class_Euro_1 = 0
-    class_Euro_2 = 1
-    class_Euro_3 = 2
-    class_Euro_3_GDI = 2.1
-    class_Euro_4 = 3
-    class_Euro_5 = 4
-    class_Euro_6 = 5
-    class_Euro_6c = 6
+    class_Euro_1 = 7
+    class_Euro_2 = 8
+    class_Euro_3 = 9
+    class_Euro_3_GDI = 10
+    class_Euro_4 = 11
+    class_Euro_5 = 12
+    class_Euro_6 = 13
+    class_Euro_6c = 14
+    ## Print names for copert class
+    name_class_euro = ["PRE_ECE", "ECE_15_00_or_01", "ECE_15_02", "ECE_15_03",
+                       "ECE_15_04", "Improved_Conventional", "Open_loop",
+                       "Euro_1", "Euro_2", "Euro_3", "Euro_3_GDI", "Euro_4",
+                       "Euro_5", "Euro_6", "Euro_6c"]
 
     # Definition of the engine type used by COPERT.
     engine_type_gasoline = 0
@@ -79,6 +84,10 @@ class Copert:
     pollutant_PM = 3
     pollutant_FC = 4
     pollutant_VOC = 5
+
+
+    # Printed Names.
+    name_pollutant = ["CO", "HC", "NOx", "PM", "FC", "VOC"]
 
     # Definition of a general range of average speed for different road types,
     # in km/h.
@@ -521,33 +530,40 @@ NAN        NAN        NAN        NAN        NAN        NAN
                         else:
                             return self.logarithm(-0.761, 0.515, V)
             else:
-                a, b, c, d, e, f \
-                    = self.efc_gasoline_passenger_car[pollutant][copert_class]
-                if copert_class <= self.class_Euro_4:
-                    if pollutant != self.pollutant_PM:
-                        return self.EF_25(a, b, c, d, e, f, V)
-                    else:
-                        if copert_class <= self.class_Euro_2:
-                            if V <= self.speed_type_urban:
-                                return self.constant(3.22e-3)
-                            elif V <= self.speed_type_rural:
-                                return self.constant(1.84e-3)
-                            else:
-                                return self.constant(1.90e-3)
-                        elif copert_class == self.class_Euro_3_GDI:
-                            if V <= self.speed_type_urban:
-                                return self.constant(6.6e-3)
-                            elif V <= self.speed_type_rural:
-                                return self.constant(2.96e-3)
-                            else:
-                                return self.constant(6.95e-3)
+                if pollutant == self.pollutant_PM:
+                    if copert_class <= self.class_Euro_2:
+                        if V <= self.speed_type_urban:
+                            return self.constant(3.22e-3)
+                        elif V <= self.speed_type_rural:
+                            return self.constant(1.84e-3)
                         else:
-                            if V <= self.speed_type_urban:
-                                return self.constant(1.28e-3)
-                            elif V <= self.speed_type_rural:
-                                return self.constant(8.36e-4)
-                            else:
-                                return self.constant(1.19e-3)
+                            return self.constant(1.90e-3)
+                    elif copert_class == self.class_Euro_3_GDI:
+                        if V <= self.speed_type_urban:
+                            return self.constant(6.6e-3)
+                        elif V <= self.speed_type_rural:
+                            return self.constant(2.96e-3)
+                        else:
+                            return self.constant(6.95e-3)
+                    elif copert_class <= self.class_Euro_4:
+                        if V <= self.speed_type_urban:
+                            return self.constant(1.28e-3)
+                        elif V <= self.speed_type_rural:
+                            return self.constant(8.36e-4)
+                        else:
+                            return self.constant(1.19e-3)
+
+                # Global indexes of EURO classes, ordered by appearance in the
+                # guidebook.
+                global_class_index = [self.class_Euro_1, self.class_Euro_2,
+                                      self.class_Euro_3, self.class_Euro_4,
+                                      self.class_Euro_5, self.class_Euro_6,
+                                      self.class_Euro_6c]
+                copert_index = global_class_index.index(copert_class)
+                a, b, c, d, e, f \
+                    = self.efc_gasoline_passenger_car[pollutant][copert_index]
+                if copert_class <= self.class_Euro_4:
+                    return self.EF_25(a, b, c, d, e, f, V)
                 else:
                     if pollutant == self.pollutant_CO \
                        or pollutant == self.pollutant_PM:
@@ -580,6 +596,16 @@ NAN        NAN        NAN        NAN        NAN        NAN
 
         @param engine_capacity The engine capacity in liter.
         """
+        # Global indexes of EURO classes, ordered by appearance in the
+        # guidebook.
+        global_class_index = [self.class_Euro_1, self.class_Euro_2,
+                              self.class_Euro_3, self.class_Euro_4,
+                              self.class_Euro_5, self.class_Euro_6,
+                              self.class_Euro_6c]
+
+        if copert_class == self.class_Euro_3_GDI:
+            raise Exception, "Class Euro_3_GDI has no emission factor " \
+                + "formula in case of diesel cars."
 
         V = speed
 
@@ -590,7 +616,7 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 "emission factors when the speed is lower than 10 km/h " \
                 "or higher than 130 km/h."
         else:
-            if copert_class < 0:
+            if copert_class not in global_class_index:
                 if pollutant == self.pollutant_CO:
                     return self.power(5.41301, -0.574, V)
                 elif pollutant == self.pollutant_NOx:
@@ -605,24 +631,25 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 elif pollutant == self.pollutant_FC:
                     return self.quadratic(0.014, -2.084, 118.489, V)
             else:
+                copert_index = global_class_index.index(copert_class)
                 if engine_capacity < 1.4:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
-                                       [pollutant][copert_class]\
+                                       [pollutant][copert_index]\
                                        [self.engine_capacity_less_1_4]
                     if math.isnan(a) and copert_class <= self.class_Euro_3:
                         raise Exception, "There is no formula to calculate " \
                             "hot emission factors of " \
-                            + self.plot_pollutant[pollutant] \
+                            + self.name_pollutant[pollutant] \
                             + ", for diesel passenger cars of copert class " \
-                            + self.plot_class_euro[copert_class] \
+                            + self.name_class_euro[copert_class] \
                             + ", with an engine capacity lower than 1.4 l."
                 elif engine_capacity < 2.0:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
-                                       [pollutant][copert_class]\
+                                       [pollutant][copert_index]\
                                        [self.engine_capacity_from_1_4_to_2]
                 else:
                     a, b, c, d, e, f = self.efc_diesel_passenger_car\
-                                       [pollutant][copert_class]\
+                                       [pollutant][copert_index]\
                                        [self.engine_capacity_more_2]
 
                 if copert_class <= self.class_Euro_4:
