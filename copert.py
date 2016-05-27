@@ -313,37 +313,23 @@ NAN        NAN        NAN        NAN        NAN        NAN
 
         @param ambient_temperature The ambient temperature in Celsius degrees.
         """
-        if pollutant == self.pollutant_CO:
-            if speed == 0.0:
-                return 0.0
-            elif speed < 10. or speed > 130.:
-                raise Exception, "There is no formula to calculate CO " \
-                    "emission when the speed is lower than 10 km/h " \
-                    "or higher than 130 km/h."
+        if vehicle_type == self.vehicle_type_passenger_car:
+            if engine_type == self.engine_type_gasoline:
+                return distance \
+                    * self.HEFGasolinePassengerCar(pollutant, speed,
+                                                   copert_class,
+                                                   engine_capacity, **kwargs)
+            elif engine_type == self.engine_type_diesel:
+                return distance \
+                    * self.HEFDieselPassengerCar(pollutant, speed,
+                                                 copert_class,
+                                                 engine_capacity, **kwargs)
             else:
-                if vehicle_type == self.vehicle_type_passenger_car:
-                    if engine_type == self.engine_type_gasoline:
-                        if copert_class == self.class_PRE_ECE:
-                            if engine_capacity > 0.8:
-                                if speed < 100.:
-                                    return 281. * speed**(-0.63) * distance
-                                else:
-                                    return 0.112 * speed + 4.32
-                            else:
-                                raise Exception, "There is no formula to " \
-                                    "calculate CO emission when engine " \
-                                    "capacity is less than 0.8 l."
-                        elif copert_class == self.class_ECE_15_00_or_01:
-                            if engine_capacity > 0.8:
-                                if speed <= 50.:
-                                    return 313. * speed**(-0.76) * distance
-                                else:
-                                    return (27.22 - 0.406 * speed
-                                            + 0.0032 * speed**2) * distance
-                            else:
-                                raise Exception, "There is no formula to " \
-                                    "calculate CO emission when engine " \
-                                    "capacity is less than 0.8 l."
+                raise Exception, "Only emission factors for gasoline and " \
+                    + "diesel vehicles are available."
+        else:
+            raise Exception, "Only emission factors for passenger cars " \
+                + "are available."
 
 
     # Definition of Hot Emission Factor (HEF) for gasoline passenger cars.
