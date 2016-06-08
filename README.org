@@ -15,14 +15,51 @@ Main features:
 The scripts are written in Python (version 2+), and the required packages are:
   - numpy
   - matplotlib
+  - os
+  - OSMParser
 
 * 3. Files
 
 ** 3.1 copert.py
 It is the definition of the class Copert, which implements COPERT formulae for road transport emissions to compute air pollutant emission factors.
 
-** 3.2 example.py
-It is an example script to show simple examples for how to launch the program. Type =python example.py= to launch it.
+** 3.2 example_compute.py
+It is an example script to show simple examples for how to launch the program. Type =python example_compute.py= to launch it. It contains examples of how to compute the emission factors and the emission.
+
+** 3.3 example_display.py
+It is an example script to show how to display the emissions at street level with OpenStreetMap. To launch this example, you also need the following files.
+*** 3.3.1 Data needed for calculating emissions
+**** links
+- input/link_osm.dat
+Description of the links in two columns: length in km and OpenStreetMap way ID. There is exactly one line per link.
+- input/flow.dat
+Flow in veh/h; one line per link.
+- input/speed.dat
+Average travel speed in km/h; one line per link.
+**** vehicle fleet data: an example of vehicle fleet data of France
+- input/copert_class_proportion_gasoline.dat
+Proportion of each COPERT class for gasoline cars, one line for each link in the network.
+- input/copert_class_proportion_diesel.dat
+Proportion of each COPERT class for diesel cars, one line for each link in the network.
+- input/engine_capacity_gasoline.dat
+There are three categories of engine capacities: below 1.4 l, in [1.4 l, 2.0 l] and above 2.0 l. This file contains the proportion of engines in each of the three capacities for gasoline cars, one line for each link.
+- input/engine_capacity_diesel.dat
+This file contains the proportion of engines in each of the three capacities for diesel cars, one line for each link.
+- input/gasoline_proportion.dat
+Proportion of gasoline cars for each link.
+- input/passenger_car_proportion.dat
+Proportion of passenger cars for each link.
+
+*** 3.3.2 OpenStreetMap data
+Before launching the example, you should download the OpenStreetMap data with the following steps:
+1. go the website http://download.geofabrik.de/ choose 'Europe', then 'France', then 'Auvergne';
+2. download the OSM XML file of the whole administrative region of Auvergne (big): auvergne-latest.osm.bz2, and extract it;
+3. extract the area you need for plotting your map with this command (plotting zone for this example):
+osmosis --read-xml auvergne-latest.osm --bounding-box top=45.8 left=3.079 bottom=45.75 right=3.1 --write-xml file=input/selected_zone-clermont.osm
+
+Warning: if you want to choose another domain, change the OSM file name and its boundaries. Update the previous command and =example_display.py= accordingly.
+*** 3.3.3 osm_network.py
+Definitions of Highway and Point objects, and associated retrieving function. This file does not need to be modified if you choose another domain.
 
 * 4. Quick example
 
