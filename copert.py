@@ -28,8 +28,8 @@ class Copert:
     """
 
 
-    # Definition of the vehicle classes used by COPERT.
-    ## Pre-euro
+    # Definition of the vehicle classes of emission standard used by COPERT.
+    ## Pre-euro for passenger cars.
     class_PRE_ECE = 0
     class_ECE_15_00_or_01 = 1
     class_ECE_15_02 = 2
@@ -37,7 +37,7 @@ class Copert:
     class_ECE_15_04 = 4
     class_Improved_Conventional = 5
     class_Open_loop = 6
-    ## Euro 1 and later
+    ## Euro 1 and later for passenger cars.
     class_Euro_1 = 7
     class_Euro_2 = 8
     class_Euro_3 = 9
@@ -51,6 +51,16 @@ class Copert:
                        "ECE_15_04", "Improved_Conventional", "Open_loop",
                        "Euro_1", "Euro_2", "Euro_3", "Euro_3_GDI", "Euro_4",
                        "Euro_5", "Euro_6", "Euro_6c"]
+    ## Pre-euro for heavy duty vehicles (hdv) and buses.
+    class_hdv_Conventional = 0
+    ## Euro 1 and later for heavy duty vehicles (hdv) and buses.
+    class_hdv_Euro_I = 1
+    class_hdv_Euro_II = 2
+    class_hdv_Euro_III = 3
+    class_hdv_Euro_IV = 4
+    class_hdv_Euro_V_EGR = 5
+    class_hdv_Euro_V_SCR = 6
+    class_hdv_Euro_VI = 7
 
     # Definition of the engine type used by COPERT.
     engine_type_gasoline = 0
@@ -60,8 +70,12 @@ class Copert:
     engine_type_hybrids = 4
     engine_type_E85 = 5
     engine_type_CNG = 6
-    engine_type_moto_tow_stroke = 7
-    engine_type_moto_four_stroke = 8
+    engine_type_tow_stroke_less_50 = 7
+    engine_type_tow_stroke_more_50 = 8
+    engine_type_four_stroke_less_50 = 9
+    engine_type_four_stroke_50_250 = 10
+    engine_type_four_stroke_250_750 = 11
+    engine_type_four_stroke_more_750 = 12
 
     # Definition of the engine capacity used by COPERT.
     engine_capacity_less_1_4 = 0
@@ -72,10 +86,49 @@ class Copert:
     vehicle_type_passenger_car = 0
     vehicle_type_light_commercial_vehicule = 1
     vehicle_type_heavy_duty_vehicle = 2
-    vehicle_type_urban_bus = 3
-    vehicle_type_coache = 4
-    vehicle_type_moped_and_motorcycle_less_50 = 5
-    vehicle_type_motocycle = 6
+    vehicle_type_bus = 3
+    vehicle_type_moped = 4
+    vehicle_type_motocycle = 5
+
+
+    # Vehicle type of heavy duty vehicles (hdv) according to the loading
+    # standard (Ref. the annex Excel file of the EEA Guidebook).
+    ## For heavy duty vehicles (hdv).
+    hdv_type_gasoline_3_5 = 0
+    hdv_type_rigid_7_5 = 1
+    hdv_type_rigid_7_5_12 = 2
+    hdv_type_rigid_12_14 = 3
+    hdv_type_rigid_14_20 = 4
+    hdv_type_rigid_20_26 = 5
+    hdv_type_rigid_26_28 = 6
+    hdv_type_rigid_28_32 = 7
+    hdv_type_rigid_32 = 8
+    hdv_type_articulated_14_20 = 9
+    hdv_type_articulated_20_28 = 10
+    hdv_type_articulated_28_34 = 11
+    hdv_type_articulated_34_40 = 12
+    hdv_type_articulated_40_50 = 13
+    hdv_type_articulated_50_60 = 14
+    ## For buses and coaches.
+    bus_type_urban_15 = 15
+    bus_type_urban_15_18 = 16
+    bus_type_urban_18 = 17
+    bus_type_coach_standard_less_18 = 18
+    bus_type_coach_articulated_more_18 = 19
+
+    # Loading standards for heavy duty vehicles.
+    hdv_load_0 = 0
+    hdv_load_50 = 1
+    hdv_load_100 = 2
+
+    # Slope for roads
+    slope_0 = 0
+    slope_negative_6 = 1
+    slope_negative_4 = 2
+    slope_negative_2 = 3
+    slope_2 = 4
+    slope_4 = 5
+    slope_6 = 6
 
     # Definition of pollutant type used by COPERT.
     pollutant_CO = 0
@@ -84,7 +137,6 @@ class Copert:
     pollutant_PM = 3
     pollutant_FC = 4
     pollutant_VOC = 5
-
 
     # Printed Names.
     name_pollutant = ["CO", "HC", "NOx", "PM", "FC", "VOC"]
@@ -119,6 +171,53 @@ class Copert:
     EF_31 = lambda self, a, b, c, d, e, f, V : \
             a + (b / (1 + math.exp((-1*c) + d * math.log(V) + e * V)))
 
+
+    # Generic functions to calculate hot emissions factors for heavy duty
+    # vehicles, buses and coaches. (ref. the attached annex Excel file of
+    # EMEP EEA emission inventory guidebook, updated June 2012).
+    Eq_hdv_0 = lambda self, a, b, c, d, e, f, g, x:\
+               (a * (b**x)) * (x**c) + 0. * (d + e + f + g)
+    Eq_hdv_1 = lambda self, a, b, c, d, e, f, g, x: \
+               (a * (x**b)) + (c * (x**d))  + 0. * (e + f + g)
+    Eq_hdv_2 = lambda self, a, b, c, d, e, f, g, x: \
+               (a + (b * x))**((-1) / c) + 0. * (d + e + f + g)
+    Eq_hdv_3 = lambda self, a, b, c, d, e, f, g, x: \
+               (a + (b * x)) \
+               + (((c - b) * (1 - math.exp(((-1) * d) * x))) / d) \
+               + 0. * (e + f + g)
+    Eq_hdv_4 = lambda self, a, b, c, d, e, f, g, x: \
+               (e + (a * math.exp(((-1) * b) * x))) \
+               + (c * math.exp(((-1) * d) * x)) \
+               + 0. * (f + g)
+    Eq_hdv_5 = lambda self, a, b, c, d, e, f, g, x: \
+               1 / (((c * (x**2)) + (b * x)) + a)  + 0. * (d + e + f + g)
+    Eq_hdv_6 = lambda self, a, b, c, d, e, f, g, x: \
+               1 / (a + (b * (x**c))) + 0. * (d + e + f + g)
+    Eq_hdv_7 = lambda self, a, b, c, d, e, f, g, x: \
+               1 / (a + (b * x)) + 0. * (c + d + e + f + g)
+    Eq_hdv_8 = lambda self, a, b, c, d, e, f, g, x: \
+               a - (b * math.exp(((-1) * c) * (x**d))) + 0. * (e + f + g)
+    Eq_hdv_9 = lambda self, a, b, c, d, e, f, g, x: \
+               a / (1 + (b * math.exp(((-1) * c) * x))) + 0. * (d + e + f + g)
+    Eq_hdv_10 = lambda self, a, b, c, d, e, f, g, x: \
+                a + (b / (1 + math.exp(((-1 * c) + (d * math.log(x))) + (e * x))))\
+                + 0. * (f + g)
+    Eq_hdv_11 = lambda self, a, b, c, d, e, f, g, x: \
+                c + (a * math.exp(((-1) * b) * x)) + 0. * (d + e + f + g)
+    Eq_hdv_12 = lambda self, a, b, c, d, e, f, g, x: \
+                c + (a * math.exp(b * x)) + 0. * (d + e + f + g)
+    Eq_hdv_13 = lambda self, a, b, c, d, e, f, g, x: \
+                math.exp((a + (b / x)) + (c * math.log(x))) \
+                + 0. * (d + e + f + g)
+    Eq_hdv_14 = lambda self, a, b, c, d, e, f, g, x: \
+                ((a * (x**3)) + (b * (x**2)) + (c * x)) + d + 0. * (e + f + g)
+    Eq_hdv_15 = lambda self, a, b, c, d, e, f, g, x: \
+                ((a * (x**2)) + (b * x)) + c + 0. * (d + e + f + g)
+
+    list_equation_hdv = [Eq_hdv_0, Eq_hdv_1, Eq_hdv_2,Eq_hdv_3, Eq_hdv_4,
+                         Eq_hdv_5, Eq_hdv_6, Eq_hdv_7, Eq_hdv_8, Eq_hdv_9,
+                         Eq_hdv_10, Eq_hdv_11, Eq_hdv_12, Eq_hdv_13,
+                         Eq_hdv_14, Eq_hdv_15]
 
     # Data table (ref. EEA emission inventory guidebook 2013, part 1.A.3.b,
     # Road transportation, version updated in Sept. 2014, page 60, Table 3-41,
@@ -285,12 +384,102 @@ NAN        NAN        NAN        NAN        NAN        NAN
     # Emission factor coefficient ("efc"), for diesel passenger cars.
     efc_diesel_passenger_car\
         = numpy.fromstring (emission_factor_string, sep = ' ')
-    efc_diesel_passenger_car.shape = (4,7,3,6)
+    efc_diesel_passenger_car.shape = (4, 7, 3, 6)
 
 
-    def __init__(self):
+    def __init__(self, hdv_parameter_file):
         """Constructor.
         """
+        # Emission factor coefficients and equations for heavy duty vehicles
+        # and buses.
+        raw_data = numpy.loadtxt(hdv_parameter_file, dtype = "str")
+        # Converting the CSV file into a multidimensional array.
+        # Initialization of parameters for heavy duty vehicles.
+        self.hdv_parameter = numpy.empty((2, 20, 8, 5, 3, 7, 10),
+                                         dtype = float)
+        self.hdv_parameter.fill(numpy.nan)
+
+        # Correspondence between strings and integer attributes in this class.
+        corr_hdv_or_bus = {"HDV": self.vehicle_type_heavy_duty_vehicle,
+                          "BUS": self.vehicle_type_bus}
+        # Index of vehicle types of heavy duty vehicles (hdv) and buses.
+        self.index_vehicle_type = {self.vehicle_type_passenger_car: None,
+                                   self.vehicle_type_light_commercial_vehicule: None,
+                                   self.vehicle_type_heavy_duty_vehicle: 0,
+                                   self.vehicle_type_bus: 1,
+                                   self.vehicle_type_moped: None,
+                                   self.vehicle_type_motocycle: None}
+        corr_hdv_type \
+            =  {"Gasoline >3.5 t": self.hdv_type_gasoline_3_5,
+                "Rigid <=7.5 t": self.hdv_type_rigid_7_5,
+                "Rigid 7.5 - 12 t": self.hdv_type_rigid_7_5_12,
+                "Rigid 12 - 14 t": self.hdv_type_rigid_12_14,
+                "Rigid 14 - 20 t": self.hdv_type_rigid_14_20,
+                "Rigid 20 - 26 t": self.hdv_type_rigid_20_26,
+                "Rigid 26 - 28 t": self.hdv_type_rigid_26_28,
+                "Rigid 28 - 32 t": self.hdv_type_rigid_28_32,
+                "Rigid >32 t": self.hdv_type_rigid_32,
+                "Articulated 14 - 20 t": self.hdv_type_articulated_14_20,
+                "Articulated 20 - 28 t": self.hdv_type_articulated_20_28,
+                "Articulated 28 - 34 t": self.hdv_type_articulated_28_34,
+                "Articulated 34 - 40 t": self.hdv_type_articulated_34_40,
+                "Articulated 40 - 50 t": self.hdv_type_articulated_40_50,
+                "Articulated 50 - 60 t": self.hdv_type_articulated_50_60,
+                "Urban Buses Midi <=15 t": self.bus_type_urban_15,
+                "Urban Buses Standard 15 - 18 t": self.bus_type_urban_15_18,
+                "Urban Buses Articulated >18 t": self.bus_type_urban_18,
+                "Coaches Standard <=18 t": self.bus_type_coach_standard_less_18,
+                "Coaches Articulated >18 t": self.bus_type_coach_articulated_more_18}
+        corr_tech = {"Conventional": self.class_hdv_Conventional,
+                     "HD Euro I": self.class_hdv_Euro_I,
+                     "HD Euro II": self.class_hdv_Euro_II,
+                     "HD Euro III": self.class_hdv_Euro_III,
+                     "HD Euro IV": self.class_hdv_Euro_IV,
+                     "HD Euro V EGR": self.class_hdv_Euro_V_EGR,
+                     "HD Euro V SCR": self.class_hdv_Euro_V_SCR,
+                     "HD Euro VI": self.class_hdv_Euro_VI}
+        corr_pollutant = {"CO": self.pollutant_CO, "NOx": self.pollutant_NOx,
+                          "HC": self.pollutant_HC, "PM": self.pollutant_PM,
+                          "FC": self.pollutant_FC}
+        self.index_pollutant = {self.pollutant_CO: 0, self.pollutant_NOx: 1,
+                                self.pollutant_HC: 2, self.pollutant_PM: 3,
+                                self.pollutant_FC: 4}
+        corr_load = {"0": self.hdv_load_0,
+                     "50": self.hdv_load_50,
+                     "100": self.hdv_load_100}
+        corr_slope = {"0%": self.slope_0,
+                      "-6%": self.slope_negative_6,
+                      "-4%": self.slope_negative_4,
+                      "-2%": self.slope_negative_2,
+                      "2%": self.slope_2,
+                      "4%": self.slope_4,
+                      "6%": self.slope_6}
+        hdv_file = open(hdv_parameter_file, "r")
+        for line in hdv_file.readlines():
+            line_split = [s.strip() for s in line.split(",")]
+            if line_split[0] == "Type":
+                continue
+            if "-" in line_split[3]:
+                index = line_split[3].index("-")
+                hdv_tech = line_split[3][: index - 1]
+                # Combining the vehicle technology EGR/SCR and Euro class for
+                # Euro-V class
+                if line_split[2][-10:] == "Euro-V EGR":
+                    hdv_tech = "HD Euro V EGR"
+                elif line_split[2][-10:] == "Euro-V SCR":
+                    hdv_tech = "HD Euro V SCR"
+            else:
+                hdv_tech = line_split[3]
+            i_hdv_or_bus = self.index_vehicle_type[corr_hdv_or_bus[line_split[0]]]
+            i_hdv_type = corr_hdv_type[line_split[1]]
+            i_hdv_tech = corr_tech[hdv_tech]
+            i_pollutant = self.index_pollutant[corr_pollutant[line_split[4]]]
+            i_hdv_load = corr_load[line_split[5]]
+            i_hdv_slope = corr_slope[line_split[6]]
+            self.hdv_parameter[i_hdv_or_bus, i_hdv_type, i_hdv_tech,
+                          i_pollutant, i_hdv_load, i_hdv_slope] \
+                = [float(x) for x in line_split[8 : 18]]
+        hdv_file.close()
         return
 
 
@@ -669,3 +858,26 @@ NAN        NAN        NAN        NAN        NAN        NAN
                         return self.EF_26(a, b, c, d, e, f, V)
                     else:
                         return self.EF_27(a, b, c, d, e, f, V)
+
+
+    def HEFHeavyDutyVehicle(self, speed, vehicle_category, hdv_type,
+                            hdv_copert_class, pollutant,
+                            load, slope, **kwargs):
+        i_hdv_or_bus = self.index_vehicle_type[vehicle_category]
+        i_hdv_type = hdv_type
+        i_hdv_copert_class = hdv_copert_class
+        i_pollutant = self.index_pollutant[pollutant]
+        i_load = load
+        i_slope = slope
+        a, b, c, d, e, f, g, Vmin, Vmax, N_eq \
+            = self.hdv_parameter[i_hdv_or_bus, hdv_type, i_hdv_copert_class,
+                                 i_pollutant, i_load, i_slope]
+        V = min(max(Vmin, speed), Vmax)
+        if N_eq >= 0:
+            emission_factor = self.list_equation_hdv[int(N_eq)](self, a, b, c,
+                                                                d, e, f, g, V)
+        else:
+            print "There is no formula available for the requested "\
+            " vehicle technology or/and pollutant."
+            emission_factor = None
+        return emission_factor

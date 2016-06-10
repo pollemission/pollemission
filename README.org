@@ -24,7 +24,12 @@ The scripts are written in Python (version 2+), and the required packages are:
 It is the definition of the class Copert, which implements COPERT formulae for road transport emissions to compute air pollutant emission factors.
 
 ** 3.2 example_compute.py
+
 It is an example script to show simple examples for how to launch the program. Type =python example_compute.py= to launch it. It contains examples of how to compute the emission factors and the emission.
+
+Note that it makes use of the annex file from the EMEP/EEA inventory guide book package:
+http://www.eea.europa.eu/publications/emep-eea-guidebook-2013/complete-emep-eea-guidebook-2013
+The parameter part ("ARTEMIS" sheet) of the file "1.A.3.b Road transport annex HDV files.xlxs" was converted to CSV file "input/HDV_parameter.csv".
 
 ** 3.3 example_display.py
 It is an example script to show how to display the emissions at street level with OpenStreetMap. To launch this example, you also need the following files.

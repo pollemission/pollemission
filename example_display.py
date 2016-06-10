@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 
-cop = copert.Copert()
+cop = copert.Copert("input/HDV_parameter.csv")
 
 ### Importing data files
 

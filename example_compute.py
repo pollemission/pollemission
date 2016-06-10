@@ -21,7 +21,7 @@
 
 import copert
 
-c = copert.Copert()
+c = copert.Copert("input/HDV_parameter.csv")
 
 # Example for calculating hot emission (g/veh) of CO.
 print c.Emission(pollutant = c.pollutant_CO,
@@ -48,3 +48,23 @@ print c.Emission(pollutant = c.pollutant_CO,
                  copert_class = c.class_Euro_4,
                  engine_capacity = 1.4, # in l
                  ambient_temperature = 20.) # in C deg
+
+# Prints the hot emission factor (g/veh/km) of gasoline and diesel heavy duty
+# vehicles (HDVs) and buses for CO.
+## for HDV
+print c.HEFHeavyDutyVehicle(speed = 50,
+                            vehicle_category = c.vehicle_type_heavy_duty_vehicle,
+                            hdv_type = c.hdv_type_rigid_14_20,
+                            hdv_copert_class = c.class_hdv_Euro_III,
+                            pollutant = c.pollutant_CO,
+                            load = c.hdv_load_50,
+                            slope = c.slope_4)
+
+## for buses
+print c.HEFHeavyDutyVehicle(speed = 50,
+                            vehicle_category = c.vehicle_type_bus,
+                            hdv_type = c.bus_type_urban_18,
+                            hdv_copert_class = c.class_hdv_Euro_III,
+                            pollutant = c.pollutant_CO,
+                            load = c.hdv_load_50,
+                            slope = c.slope_4)
