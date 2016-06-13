@@ -406,12 +406,13 @@ NAN        NAN        NAN        NAN        NAN        NAN
         corr_hdv_or_bus = {"HDV": self.vehicle_type_heavy_duty_vehicle,
                           "BUS": self.vehicle_type_bus}
         # Index of vehicle types of heavy duty vehicles (hdv) and buses.
-        self.index_vehicle_type = {self.vehicle_type_passenger_car: None,
-                                   self.vehicle_type_light_commercial_vehicule: None,
-                                   self.vehicle_type_heavy_duty_vehicle: 0,
-                                   self.vehicle_type_bus: 1,
-                                   self.vehicle_type_moped: None,
-                                   self.vehicle_type_motocycle: None}
+        self.index_vehicle_type \
+            = {self.vehicle_type_passenger_car: None,
+               self.vehicle_type_light_commercial_vehicule: None,
+               self.vehicle_type_heavy_duty_vehicle: 0,
+               self.vehicle_type_bus: 1,
+               self.vehicle_type_moped: None,
+               self.vehicle_type_motocycle: None}
         corr_hdv_type \
             =  {"Gasoline >3.5 t": self.hdv_type_gasoline_3_5,
                 "Rigid <=7.5 t": self.hdv_type_rigid_7_5,
@@ -470,7 +471,8 @@ NAN        NAN        NAN        NAN        NAN        NAN
                     hdv_tech = line_split[3]
             else:
                 hdv_tech = line_split[3]
-            i_hdv_or_bus = self.index_vehicle_type[corr_hdv_or_bus[line_split[0]]]
+            i_hdv_or_bus \
+                = self.index_vehicle_type[corr_hdv_or_bus[line_split[0]]]
             i_hdv_type = corr_hdv_type[line_split[1]]
             i_hdv_tech = corr_tech[hdv_tech]
             i_pollutant = self.index_pollutant[corr_pollutant[line_split[4]]]
@@ -679,7 +681,8 @@ NAN        NAN        NAN        NAN        NAN        NAN
                     raise Exception, "There is no formula to calculate hot "\
                         "emission factor of gasoline passenger cars when " \
                         "the engine capacity is lower than 0.8 l " \
-                        "or higher than 2.0 l."
+                        "or higher than 2.0 l for vehicle technology of "\
+                        "Improved Conventional cars."
                 else:
                     if pollutant == self.pollutant_CO:
                         if engine_capacity < 1.4:
@@ -701,7 +704,8 @@ NAN        NAN        NAN        NAN        NAN        NAN
                     raise Exception, "There is no formula to calculate hot " \
                         "emission factor of gasoline passenger cars when " \
                         "the engine capacity is lower than 0.8 l " \
-                        "or higher than 2.0 l."
+                        "or higher than 2.0 l for vehicle technology of "\
+                        "Open loop cars."
                 else:
                     if pollutant == self.pollutant_CO:
                         if engine_capacity < 1.4:
@@ -805,7 +809,7 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 "emission factors when the speed is lower than 10 km/h " \
                 "or higher than 130 km/h."
         else:
-            if copert_class not in global_class_index:
+            if copert_class not in global_class_index: # Pre-Euro
                 if pollutant == self.pollutant_CO:
                     return self.power(5.41301, -0.574, V)
                 elif pollutant == self.pollutant_NOx:
