@@ -21,7 +21,8 @@
 
 import copert
 
-c = copert.Copert("input/LDV_parameter.csv", "input/HDV_parameter.csv")
+c = copert.Copert("input/LDV_parameter.csv", "input/HDV_parameter.csv",
+                  "input/Moto_parameter.csv")
 
 # Example for calculating hot emission (g/veh) of CO.
 print c.Emission(pollutant = c.pollutant_CO,
@@ -84,3 +85,14 @@ print c.HEFHeavyDutyVehicle(speed = 50,
                             pollutant = c.pollutant_CO,
                             load = c.hdv_load_50,
                             slope = c.slope_4)
+
+# Prints the emission factor for mopeds and motorcycles.
+print c.EFMoped(speed = 50,
+                pollutant = c.pollutant_CO,
+                engine_type = c.engine_type_two_stroke_less_50,
+                copert_class = c.class_Euro_3)
+
+print c.EFMotorcycle(speed = 50,
+                     pollutant = c.pollutant_CO,
+                     engine_type = c.engine_type_four_stroke_more_750,
+                     copert_class = c.class_Euro_3)

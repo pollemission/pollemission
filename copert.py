@@ -74,8 +74,8 @@ class Copert:
     engine_type_hybrids = 4
     engine_type_E85 = 5
     engine_type_CNG = 6
-    engine_type_tow_stroke_less_50 = 7
-    engine_type_tow_stroke_more_50 = 8
+    engine_type_two_stroke_less_50 = 7
+    engine_type_two_stroke_more_50 = 8
     engine_type_four_stroke_less_50 = 9
     engine_type_four_stroke_50_250 = 10
     engine_type_four_stroke_250_750 = 11
@@ -92,7 +92,7 @@ class Copert:
     vehicle_type_heavy_duty_vehicle = 2
     vehicle_type_bus = 3
     vehicle_type_moped = 4
-    vehicle_type_motocycle = 5
+    vehicle_type_motorcycle = 5
 
 
     # Vehicle type of heavy duty vehicles (hdv) according to the loading
@@ -274,10 +274,19 @@ class Copert:
                          Eq_hdv_10, Eq_hdv_11, Eq_hdv_12, Eq_hdv_13,
                          Eq_hdv_14, Eq_hdv_15]
 
-    # Data table (ref. EEA emission inventory guidebook 2013, part 1.A.3.b,
-    # Road transportation, version updated in Sept. 2014, page 60, Table 3-41,
-    # except for fuel consumption). It is assumed that if there is no value
-    # for the coefficient in this table, the default value 0.0 will be taken.
+
+    # Generic functions to calculate hot emissions factors for two-stroke
+    # motorcycles of engine displacement over 50 cm3.
+    Eq_56 = lambda self, a0, a1, a2, a3, a4, a5, x: \
+            a0 + a1 * x + a2 * x**2 + a3 * x**3 + a4 * x**4 + a5 * x**5
+
+
+    # Data table to compute hot emission factor for gasoline passenger cars
+    # from copert_class Euro1 to Euro 6c, except for FC. (ref. EEA emission
+    # inventory guidebook 2013, part 1.A.3.b, Road transportation, version
+    # updated in Sept. 2014, page 60, Table 3-41, except for fuel
+    # consumption). It is assumed that if there is no value for the
+    # coefficient in this table, the default value 0.0 will be taken.
     emission_factor_string \
         = """
 1.12e1    1.29e-1  -1.02e-1  -9.47e-4  6.77e-4   0.0
@@ -491,7 +500,24 @@ NAN     NAN      NAN        NAN        NAN
     ldv_reduction_percentage.shape = (2, 3, 4)
 
 
-    def __init__(self, ldv_parameter_file, hdv_parameter_file):
+    # Data table of emission and fuel consumption factors for mopeds < 50 cm3.
+    # (ref. data merged from table 3-67 and table 3-68)
+    moped_parameter_string \
+        = """
+14.7    0.056    8.4     25.0     0.176
+4.6     0.18     3.4     20.0     0.045
+2.8     0.17     2.6     20.0     0.026
+1.8     0.17     1.8     20.0     0.018
+14.7    0.056    8.4     25.0     0.176
+6.7     0.22     0.78    20.0     0.040
+4.2     0.17     0.79    20.0     0.007
+2.7     0.17     0.54    20.0     0.004
+"""
+    moped_parameter = numpy.fromstring(moped_parameter_string, sep = ' ')
+    moped_parameter.shape = (2, 4, 5)
+
+
+    def __init__(self, ldv_parameter_file, hdv_parameter_file, moto_parameter_file):
         """Constructor.
         """
 
@@ -560,7 +586,7 @@ NAN     NAN      NAN        NAN        NAN
                self.vehicle_type_heavy_duty_vehicle: 0,
                self.vehicle_type_bus: 1,
                self.vehicle_type_moped: None,
-               self.vehicle_type_motocycle: None}
+               self.vehicle_type_motorcycle: None}
         corr_hdv_type \
             =  {"Gasoline >3.5 t": self.hdv_type_gasoline_3_5,
                 "Rigid <=7.5 t": self.hdv_type_rigid_7_5,
@@ -621,9 +647,51 @@ NAN     NAN      NAN        NAN        NAN
             i_hdv_load = corr_load[line_split[5]]
             i_hdv_slope = corr_slope[line_split[6]]
             self.hdv_parameter[i_hdv_or_bus, i_hdv_type, i_hdv_tech,
-                          i_pollutant, i_hdv_load, i_hdv_slope] \
+                               i_pollutant, i_hdv_load, i_hdv_slope] \
                 = [float(x) for x in line_split[8 : 18]]
         hdv_file.close()
+
+        # Emission factor coefficients for motorcycles of engine displacement
+        # over 50 cm3. The data in the text file is based on the Table 3-69,
+        # Table 3-70, Table 3-71.
+        ## Initialization
+        self.moto_parameter = numpy.empty((4, 5, 4, 8), dtype = float)
+        self.moto_parameter.fill(numpy.nan)
+        ## Correspondence between strings and integer attributes in this class
+        ## for motorcycles
+        corr_engine_type \
+            = {"2-Stroke": self.engine_type_two_stroke_more_50,
+               "4-Stroke < 250": self.engine_type_four_stroke_50_250,
+               "4-Stroke 250-750": self.engine_type_four_stroke_250_750,
+               "4-Stroke > 750": self.engine_type_four_stroke_more_750}
+        self.index_moto_engine_type \
+            = {self.engine_type_two_stroke_more_50: 0,
+               self.engine_type_four_stroke_50_250: 1,
+               self.engine_type_four_stroke_250_750: 2,
+               self.engine_type_four_stroke_more_750: 3}
+        corr_copert_class \
+            = {"Conventional": self.class_Improved_Conventional,
+               "Euro 1": self.class_Euro_1, "Euro 2": self.class_Euro_2,
+               "Euro 3": self.class_Euro_3}
+        self.index_copert_class_moto = {self.class_Improved_Conventional: 0,
+                                        self.class_Euro_1: 1,
+                                        self.class_Euro_2: 2,
+                                        self.class_Euro_3: 3}
+        ## Converting the CSV file into a multidimensional array.
+        moto_file = open(moto_parameter_file, "r")
+        for line in moto_file.readlines():
+            line_split = [s.strip() for s in line.split(",")]
+            if line_split[0] == "Engine type":
+                continue
+            i_engine_type \
+                = self.index_moto_engine_type[corr_engine_type[line_split[0]]]
+            i_pollutant = self.index_pollutant[corr_pollutant[line_split[1]]]
+            i_copert_class \
+                = self.index_copert_class_moto[corr_copert_class[line_split[2]]]
+            self.moto_parameter[i_engine_type, i_pollutant,
+                                i_copert_class] \
+                = [float(x) for x in line_split[3 : 11]]
+        moto_file.close()
         return
 
 
@@ -1103,3 +1171,46 @@ NAN     NAN      NAN        NAN        NAN
             raise Exception, "There is no formula available for the " \
                 " requested vehicle technology or/and pollutant."
         return emission_factor
+
+
+    # Definition of Emission Factor (EF) for mopeds. There is no distinction
+    # between hot and cold-start emissions, and only the emission factors
+    # under urban driving conditions are given.
+    def EFMoped(self, pollutant, speed, engine_type, copert_class, **kwargs):
+        if copert_class in [self.class_Improved_Conventional,
+                            self.class_Euro_1, self.class_Euro_2,
+                            self.class_Euro_3] \
+            and pollutant != self.pollutant_HC:
+            i_copert_class = self.index_copert_class_moto[copert_class]
+            index_pollutant = {self.pollutant_CO: 0, self.pollutant_NOx: 1,
+                               self.pollutant_VOC: 2, self.pollutant_FC: 3,
+                               self.pollutant_PM: 4}
+            i_pollutant = index_pollutant[pollutant]
+            if engine_type == self.engine_type_two_stroke_less_50:
+                return self.moped_parameter[0, i_copert_class, i_pollutant]
+            elif engine_type == self.engine_type_four_stroke_less_50:
+                return self.moped_parameter[1, i_copert_class, i_pollutant]
+        else:
+            raise Exception, "Only formulas for mopeds with emission " \
+                "standard of Conventional, Euro 1 - Euro 3 are available, " \
+                "and there is no formula for the pollutant HC."
+
+    # Definition of Emission Factor (EF) for motorcycles.
+    def EFMotorcycle(self, pollutant, speed, engine_type, copert_class,
+                     **kwargs):
+        if copert_class in [self.class_Improved_Conventional,
+                            self.class_Euro_1, self.class_Euro_2,
+                            self.class_Euro_3] \
+            and pollutant != self.pollutant_VOC:
+            i_engine_type = self.index_moto_engine_type[engine_type]
+            i_pollutant = self.index_pollutant[pollutant]
+            i_copert_class = self.index_copert_class_moto[copert_class]
+            Vmin, Vmax, a5, a4, a3, a2, a1, a0 \
+                = self.moto_parameter[i_engine_type, i_pollutant,
+                                      i_copert_class]
+            V = min(max(Vmin, speed), Vmax)
+            return self.Eq_56(a0, a1, a2, a3, a4, a5, V)
+        else:
+            raise Exception, "Only formulas for motorcycles with emission " \
+                "standard of Conventional, Euro 1 - Euro 3 are available, " \
+                "and there is no formula for the pollutant VOC."
