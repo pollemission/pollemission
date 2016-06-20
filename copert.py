@@ -61,6 +61,10 @@ class Copert:
     class_hdv_Euro_V_EGR = 5
     class_hdv_Euro_V_SCR = 6
     class_hdv_Euro_VI = 7
+    ## Print names for Copert class of HDVs and buses.
+    name_hdv_copert_class = ["Conventional", "Euro I", "Euro II",
+                             "Euro III", "Euro IV", "Euro V - EGR",
+                             "Euro V - SCR", "Euro VI"]
 
     # Definition of the engine type used by COPERT.
     engine_type_gasoline = 0
@@ -392,7 +396,6 @@ NAN        NAN        NAN        NAN        NAN        NAN
         """
         # Emission factor coefficients and equations for heavy duty vehicles
         # and buses.
-        raw_data = numpy.loadtxt(hdv_parameter_file, dtype = "str")
         # Converting the CSV file into a multidimensional array.
         # Initialization of parameters for heavy duty vehicles.
         self.hdv_parameter = numpy.empty((2, 20, 8, 5, 3, 7, 10),
@@ -435,8 +438,8 @@ NAN        NAN        NAN        NAN        NAN        NAN
                      "HD Euro II": self.class_hdv_Euro_II,
                      "HD Euro III": self.class_hdv_Euro_III,
                      "HD Euro IV": self.class_hdv_Euro_IV,
-                     "HD Euro V EGR": self.class_hdv_Euro_V_EGR,
-                     "HD Euro V SCR": self.class_hdv_Euro_V_SCR,
+                     "HD Euro V - EGR": self.class_hdv_Euro_V_EGR,
+                     "HD Euro V - SCR": self.class_hdv_Euro_V_SCR,
                      "HD Euro VI": self.class_hdv_Euro_VI}
         corr_pollutant = {"CO": self.pollutant_CO, "NOx": self.pollutant_NOx,
                           "HC": self.pollutant_HC, "PM": self.pollutant_PM,
@@ -461,13 +464,10 @@ NAN        NAN        NAN        NAN        NAN        NAN
                 continue
             if "-" in line_split[3]:
                 index = line_split[3].index("-")
-                hdv_tech = line_split[3][: index - 1]
-                # Combining the vehicle technology EGR/SCR and Euro class for
-                # Euro-V class
-                if line_split[2][-10:] == "Euro-V EGR":
-                    hdv_tech = "HD Euro V EGR"
-                elif line_split[2][-10:] == "Euro-V SCR":
-                    hdv_tech = "HD Euro V SCR"
+                if line_split[3][:index] != "HD Euro V ":
+                    hdv_tech = line_split[3][:index - 1]
+                else:
+                    hdv_tech = line_split[3]
             else:
                 hdv_tech = line_split[3]
             i_hdv_or_bus = self.index_vehicle_type[corr_hdv_or_bus[line_split[0]]]
