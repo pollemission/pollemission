@@ -175,6 +175,57 @@ class Copert:
     EF_31 = lambda self, a, b, c, d, e, f, V : \
             a + (b / (1 + math.exp((-1*c) + d * math.log(V) + e * V)))
 
+    # Generic functions to calculate hot emissions factors for passenger cars
+    # and light commercial vehicles. (ref. the attached annex Excel file of
+    # EMEP EEA emission inventory guidebook, updated September 2014).
+    Eq_1 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           ((a + c * V + e * V**2 + f / V) / (1 + b * V + d * V**2)) \
+           * (1-rf) + 0. * (g + h)
+    Eq_2 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           ((a * V**2) + (b * V) + c + (d * math.log(V)) \
+            + (e * math.exp(f * V)) +(g * (V**h))) * (1 - rf)
+    Eq_3 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           (a + b * (1 + math.exp( - (V + c) / d ))**-1 ) * (1 - rf) \
+           + 0. * (e + f + g + h)
+    Eq_4 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           (a * V**b ) * (1- rf) + 0. * (c + d + e + f + g + h)
+    Eq_5 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           (((a * V**2) + (b * V) + c + (d * math.log(V)) \
+             + (e * math.exp(f * V)) + (g * (V**h))) * (1 - rf)) / 1000
+    Eq_6 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           (a + b / (1 + math.exp((-1 * c \
+                                     + d * math.log(V)) + e * V))) * (1 - rf)\
+           + 0. * (f + g + h)
+    Eq_7 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           ((a * V**3 + b * V**2) + c * V + d)* (1 - rf) + 0.* (e + f + g + h)
+    Eq_8 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           ((a * b**V * V**c)) * (1 - rf) + 0. * (d + e + f + g + h)
+    Eq_9 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+           ((a * V**b) + c * V**d) * (1 - rf) + 0. * (d + e + f + g + h)
+    Eq_10 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            (1 / (a + b * V**c)) * (1 - rf) + 0. * (d + e + f + g + h)
+    Eq_11 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            ((a + b * V)**(-1 / c)) * (1 - rf) + 0. * (d + e + f + g + h)
+    Eq_12 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            (1 / (c * V**2 + b * V + a)) * (1 - rf) + 0. * (d + e + f + g + h)
+    Eq_13 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            math.exp((a + b / V) + (c * math.log(V))) * (1 - rf) \
+            + 0. * (d + e + f + g + h)
+    Eq_14 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            (e + a * math.exp(-1 * b * V) \
+              + c * math.exp(-1 * d * V)) * (1 - rf) + 0. * (f + g + h)
+    Eq_15 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            (a * V**2 + b * V + c) * (1 - rf) + 0. * (d + e + f + g + h)
+    Eq_16 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            (a - b * math.exp(-1 * c * V**d)) * (1 - rf) + 0.* (e + f + g + h)
+    Eq_17 = lambda self, a, b, c, d, e, f, g, h, rf, V : \
+            (a * V**5 + b * V**4 + c * V**3 + d * V**2 + e * V + f) \
+            * (1 - rf) + 0. * (g + h)
+
+    list_equation_ldv = [Eq_1, Eq_2, Eq_3, Eq_4, Eq_5, Eq_6, Eq_7, Eq_8,
+                         Eq_9, Eq_10, Eq_11, Eq_12, Eq_13, Eq_14, Eq_15,
+                         Eq_16, Eq_17]
+
 
     # Generic functions to calculate hot emissions factors for heavy duty
     # vehicles, buses and coaches. (ref. the attached annex Excel file of
@@ -391,9 +442,106 @@ NAN        NAN        NAN        NAN        NAN        NAN
     efc_diesel_passenger_car.shape = (4, 7, 3, 6)
 
 
-    def __init__(self, hdv_parameter_file):
+    # Data table of the emission factor parameters for light commercial
+    # vehicles ("ldv" for "light duty vehicles") of emission standard
+    # Conventional and Euro 1. (ref. merged from Table 3-59 and Table 3-62)
+
+    ldv_parameter_pre_euro_1_string \
+        = """
+10.0    110.0    0.01104    -1.5132    57.789
+10.0    120.0    0.0037     -0.5215    19.127
+10.0    110.0    0.0        0.0179     1.9547
+10.0    120.0    7.55e-5    -0.009     0.666
+10.0    110.0    67.7e-5    -0.117     5.4734
+10.0    120.0    5.77e-5    -0.01047   0.54734
+NAN     NAN      NAN        NAN        NAN
+NAN     NAN      NAN        NAN        NAN
+10.0    110.0    0.0167     -2.649     161.51
+10.0    120.0    0.0195     -3.09      188.85
+10.0    110.0    20e-5      -0.0256    1.8281
+10.0    110.0    22.3e-5    -0.026     1.076
+10.0    110.0    81.6e-5    -0.1189    5.1234
+10.0    110.0    24.1e-5    -0.03181   2.0247
+10.0    110.0    1.75e-5    -0.00284   0.2162
+10.0    110.0    1.75e-5    -0.00284   0.2162
+10.0    110.0    1.25e-5    -0.000577  0.288
+10.0    110.0    4.5e-5     -0.004885  0.1932
+10.0    110.0    0.02113    -2.65      148.91
+10.0    110.0    0.0198     -2.506     137.42
+"""
+    ldv_parameter_pre_euro_1 \
+        = numpy.fromstring(ldv_parameter_pre_euro_1_string, sep = ' ')
+    ldv_parameter_pre_euro_1.shape = (2, 5, 2, 5)
+
+
+    # Emission reduction percentage Euro 2 to Euro 4 light commercial vehicles
+    # ("ldv" for "light duty vehicles") applied to vehicles of Euro 1. (data
+    # merged from Table 3-60 and Table 3-63)
+    ldv_reduction_percentage_string \
+        = """
+39.0    66.0    76.0    NAN
+48.0    79.0    86.0    NAN
+72.0    90.0    94.0    NAN
+0.0     0.0     0.0     0.0
+18.0    16.0    38.0    33.0
+35.0    32.0    77.0    65.0
+"""
+    ldv_reduction_percentage \
+        = numpy.fromstring(ldv_reduction_percentage_string, sep = ' ')
+    ldv_reduction_percentage.shape = (2, 3, 4)
+
+
+    def __init__(self, ldv_parameter_file, hdv_parameter_file):
         """Constructor.
         """
+
+        # Correspondence between strings and integer attributes in this class
+        # for light commercial vehicles, heavy duty vehicles and buses.
+        corr_pollutant = {"CO": self.pollutant_CO, "NOx": self.pollutant_NOx,
+                          "HC": self.pollutant_HC, "PM": self.pollutant_PM,
+                          "FC": self.pollutant_FC}
+        self.index_pollutant = {self.pollutant_CO: 0, self.pollutant_NOx: 1,
+                                self.pollutant_HC: 2, self.pollutant_PM: 3,
+                                self.pollutant_FC: 4}
+
+        # Emission factor coefficients and equations for light commercial
+        # vehicles of emission standard higher than Euro 5. ("LDVs" for light
+        # duty vehicles in the Excel file of the inventory guide book.)
+        ## Initialization
+        self.ldv_parameter = numpy.empty((2, 3, 5, 12), dtype = float)
+        self.ldv_parameter.fill(numpy.nan)
+        ## Correspondence between strings and integer attributes in this class
+        ## for light commercial vehicles
+        corr_ldv_type = {"Gasoline <3.5 t": self.engine_type_gasoline,
+                         "Diesel <3.5 t": self.engine_type_diesel}
+        corr_ldv_class = {"5": self.class_Euro_5, "6": self.class_Euro_6,
+                          "6c": self.class_Euro_6c}
+        self.index_copert_class_ldv = {self.class_Improved_Conventional: None,
+                                       self.class_Euro_1: None,
+                                       self.class_Euro_2: None,
+                                       self.class_Euro_3: None,
+                                       self.class_Euro_3_GDI: None,
+                                       self.class_Euro_4: None,
+                                       self.class_Euro_5: 0,
+                                       self.class_Euro_6: 1,
+                                       self.class_Euro_6c : 2}
+        corr_ldv_equation = {"Equation 1": 0, "Equation 9": 8,
+                             "Equation 12": 11, "Equation 16": 15,
+                             "Equation 17": 16}
+        ldv_file = open(ldv_parameter_file, "r")
+        for line in ldv_file.readlines():
+            line_split = [s.strip() for s in line.split(",")]
+            if line_split[0] == "Sector":
+                continue
+            i_ldv_type = corr_ldv_type[line_split[1]]
+            i_ldv_copert_class \
+                = self.index_copert_class_ldv[corr_ldv_class[line_split[3]]]
+            i_pollutant = self.index_pollutant[corr_pollutant[line_split[4]]]
+            line_split[16] = corr_ldv_equation[line_split[16]]
+            self.ldv_parameter[i_ldv_type, i_ldv_copert_class, i_pollutant] \
+                = [float(x) for x in line_split[5 : 17]]
+        ldv_file.close()
+
         # Emission factor coefficients and equations for heavy duty vehicles
         # and buses.
         # Converting the CSV file into a multidimensional array.
@@ -442,12 +590,6 @@ NAN        NAN        NAN        NAN        NAN        NAN
                      "HD Euro V - EGR": self.class_hdv_Euro_V_EGR,
                      "HD Euro V - SCR": self.class_hdv_Euro_V_SCR,
                      "HD Euro VI": self.class_hdv_Euro_VI}
-        corr_pollutant = {"CO": self.pollutant_CO, "NOx": self.pollutant_NOx,
-                          "HC": self.pollutant_HC, "PM": self.pollutant_PM,
-                          "FC": self.pollutant_FC}
-        self.index_pollutant = {self.pollutant_CO: 0, self.pollutant_NOx: 1,
-                                self.pollutant_HC: 2, self.pollutant_PM: 3,
-                                self.pollutant_FC: 4}
         corr_load = {"0": self.hdv_load_0,
                      "50": self.hdv_load_50,
                      "100": self.hdv_load_100}
@@ -864,6 +1006,83 @@ NAN        NAN        NAN        NAN        NAN        NAN
                         return self.EF_27(a, b, c, d, e, f, V)
 
 
+    # Definition of Hot Emission Factor (HEF) for light commercial vehicles.
+    def HEFLightCommercialVehicle(self, pollutant, speed, engine_type,
+                                  copert_class, **kwargs):
+        V = speed
+        if V == 0.0:
+            return 0.0
+        else:
+            index_pollutant_pre_euro_4 = {self.pollutant_CO: 0,
+                                          self.pollutant_NOx: 1,
+                                          self.pollutant_VOC: 2,
+                                          self.pollutant_PM: 3,
+                                          self.pollutant_FC: 4}
+            if copert_class <= self.class_Euro_1:
+                index_copert_class = {self.class_Improved_Conventional: 0,
+                                      self.class_Euro_1: 1}
+                i_copert_class = index_copert_class[copert_class]
+                i_pollutant = index_pollutant_pre_euro_4[pollutant]
+                if engine_type == self.engine_type_gasoline \
+                   and (pollutant == self.pollutant_PM \
+                        or pollutant == self.pollutant_HC):
+                    raise Exception, "There is no formula to calculate hot " \
+                        "emission factors for PM and HC when engine type " \
+                        "is gasoline, with emission standard of " \
+                        "Conventional or Euro 1."
+                if engine_type == self.engine_type_diesel \
+                   and pollutant == self.pollutant_HC:
+                    raise Exception, "There is no formula to calculate hot " \
+                        "emission factors for HC when engine type is " \
+                        "diesel, with emission standard is Conventional " \
+                        "or Euro 1."
+                else:
+                    Vmin, Vmax, a, b, c \
+                           = self.ldv_parameter_pre_euro_1[engine_type,
+                                                           i_pollutant,
+                                                           i_copert_class,:]
+                    V = min(max(Vmin, speed), Vmax)
+                    return self.quadratic(a, b, c, V)
+            if copert_class >= self.class_Euro_2 \
+               and copert_class <= self.class_Euro_4:
+                emission_factor_euro_1 \
+                    = self.HEFLightCommercialVehicle(pollutant, V,
+                                                     engine_type,
+                                                     self.class_Euro_1)
+                if pollutant != self.pollutant_HC \
+                   and pollutant != self.pollutant_FC:
+                    i_engine_type = engine_type
+                    i_pollutant = index_pollutant_pre_euro_4[pollutant]
+                    index_copert_class = {self.class_Euro_2: 0,
+                                          self.class_Euro_3: 1,
+                                          self.class_Euro_4: 2}
+                    i_copert_class = index_copert_class[copert_class]
+                    reduction_percentage \
+                        = 0.01 * self.ldv_reduction_percentage[i_engine_type,
+                                                               i_copert_class,
+                                                               i_pollutant]
+                    return emission_factor_euro_1 \
+                        * (1.0 - reduction_percentage)
+                else:
+                    raise Exception, "There is no formula to calculate hot " \
+                        "emission factors for the requested pollutant when " \
+                        "emission standard is between Euro 2 and Euro 4."
+                    return None
+            elif copert_class >= self.class_Euro_5:
+                i_pollutant = self.index_pollutant[pollutant]
+                i_copert_class = self.index_copert_class_ldv[copert_class]
+                a, b, c, d, e, f, g, h, rf, Vmin, Vmax, N_eq \
+                    = self.ldv_parameter[engine_type, i_copert_class,
+                                         i_pollutant]
+                V = min(max(Vmin, speed), Vmax)
+                emission_factor \
+                    = self.list_equation_ldv[int(N_eq)](self, a, b, c, d,
+                                                        e, f, g, h, rf, V)
+                return emission_factor
+
+
+    # Definition of Hot Emission Factor (HEF) for heavy duty vehicles and
+    # buses.
     def HEFHeavyDutyVehicle(self, speed, vehicle_category, hdv_type,
                             hdv_copert_class, pollutant,
                             load, slope, **kwargs):
@@ -881,7 +1100,6 @@ NAN        NAN        NAN        NAN        NAN        NAN
             emission_factor = self.list_equation_hdv[int(N_eq)](self, a, b, c,
                                                                 d, e, f, g, V)
         else:
-            print "There is no formula available for the requested "\
-            " vehicle technology or/and pollutant."
-            emission_factor = None
+            raise Exception, "There is no formula available for the " \
+                " requested vehicle technology or/and pollutant."
         return emission_factor
