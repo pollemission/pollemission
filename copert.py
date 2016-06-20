@@ -578,7 +578,7 @@ NAN     NAN      NAN        NAN        NAN
 
         # Correspondence between strings and integer attributes in this class.
         corr_hdv_or_bus = {"HDV": self.vehicle_type_heavy_duty_vehicle,
-                          "BUS": self.vehicle_type_bus}
+                           "BUS": self.vehicle_type_bus}
         # Index of vehicle types of heavy duty vehicles (hdv) and buses.
         self.index_vehicle_type \
             = {self.vehicle_type_passenger_car: None,
