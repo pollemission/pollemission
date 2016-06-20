@@ -30,8 +30,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 
-cop = copert.Copert("input/LDV_parameter.csv", "input/HDV_parameter.csv",
-                    "input/Moto_parameter.csv")
+cop = copert.Copert("input/PC_parameter.csv", "input/LDV_parameter.csv",
+                    "input/HDV_parameter.csv", "input/Moto_parameter.csv")
 
 ### Importing data files
 
