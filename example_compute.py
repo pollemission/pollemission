@@ -80,7 +80,7 @@ print c.HEFHeavyDutyVehicle(speed = 30,
 ## for buses
 print c.HEFHeavyDutyVehicle(speed = 30,
                             vehicle_category = c.vehicle_type_bus,
-                            hdv_type = c.bus_type_urban_18,
+                            hdv_type = c.bus_type_urban_more_18,
                             hdv_copert_class = c.class_hdv_Euro_III,
                             pollutant = c.pollutant_CO,
                             load = c.hdv_load_50,

@@ -82,13 +82,13 @@ class Copert:
     engine_type_four_stroke_more_750 = 12
 
     # Definition of the engine capacity used by COPERT.
-    engine_capacity_less_1_4 = 0
-    engine_capacity_1_4_to_2 = 1
+    engine_capacity_less_1p4 = 0
+    engine_capacity_1p4_to_2 = 1
     engine_capacity_more_2 = 2
 
     # Definition of the vehicle type used by COPERT.
     vehicle_type_passenger_car = 0
-    vehicle_type_light_commercial_vehicule = 1
+    vehicle_type_light_commercial_vehicle = 1
     vehicle_type_heavy_duty_vehicle = 2
     vehicle_type_bus = 3
     vehicle_type_moped = 4
@@ -98,9 +98,9 @@ class Copert:
     # Vehicle type of heavy duty vehicles (hdv) according to the loading
     # standard (Ref. the annex Excel file of the EEA Guidebook).
     ## For heavy duty vehicles (hdv).
-    hdv_type_gasoline_3_5 = 0
-    hdv_type_rigid_7_5 = 1
-    hdv_type_rigid_7_5_12 = 2
+    hdv_type_gasoline_3p5 = 0
+    hdv_type_rigid_7p5 = 1
+    hdv_type_rigid_7p5_12 = 2
     hdv_type_rigid_12_14 = 3
     hdv_type_rigid_14_20 = 4
     hdv_type_rigid_20_26 = 5
@@ -114,9 +114,9 @@ class Copert:
     hdv_type_articulated_40_50 = 13
     hdv_type_articulated_50_60 = 14
     ## For buses and coaches.
-    bus_type_urban_15 = 15
+    bus_type_urban_less_15 = 15
     bus_type_urban_15_18 = 16
-    bus_type_urban_18 = 17
+    bus_type_urban_more_18 = 17
     bus_type_coach_standard_less_18 = 18
     bus_type_coach_articulated_more_18 = 19
 
@@ -228,8 +228,10 @@ class Copert:
 
 
     # Generic functions to calculate hot emissions factors for heavy duty
-    # vehicles, buses and coaches. (ref. the attached annex Excel file of
-    # EMEP EEA emission inventory guidebook, updated June 2012).
+    # vehicles, buses and coaches. (ref. the attached annex Excel file of EMEP
+    # EEA emission inventory guidebook, updated June 2012). The equation
+    # numbers follow those of the annex file updated June 2012, not of those
+    # of a later version or of the guidebook.
     Eq_hdv_0 = lambda self, a, b, c, d, e, f, g, x:\
                (a * (b**x)) * (x**c) + 0. * (d + e + f + g)
     Eq_hdv_1 = lambda self, a, b, c, d, e, f, g, x: \
@@ -318,7 +320,7 @@ NAN       NAN      NAN       NAN       NAN       NAN
 2.31e-13  1.26e-11 -1.1e-8   1.23e-6   -6.29e-5  2.72e-3
 2.65e-13  -4.07e-11 1.55e-9  1.43e-7   -2.5e-5   2.45e-3
 """
-    # Emission factor coefficient ("efc"), for gasoline passenger cars.
+    # Hot emission factor coefficient ("efc"), for gasoline passenger cars.
     efc_gasoline_passenger_car \
         = numpy.fromstring(emission_factor_string, sep = ' ')
     efc_gasoline_passenger_car.shape = (4, 7, 6)
@@ -445,13 +447,13 @@ NAN        NAN        NAN        NAN        NAN        NAN
 -1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
    """
 
-    # Emission factor coefficient ("efc"), for diesel passenger cars.
+    # Hot emission factor coefficient ("efc"), for diesel passenger cars.
     efc_diesel_passenger_car\
         = numpy.fromstring (emission_factor_string, sep = ' ')
     efc_diesel_passenger_car.shape = (4, 7, 3, 6)
 
 
-    # Data table of the emission factor parameters for light commercial
+    # Data table of the hot emission factor parameters for light commercial
     # vehicles ("ldv" for "light duty vehicles") of emission standard
     # Conventional and Euro 1. (ref. merged from Table 3-59 and Table 3-62)
 
@@ -531,9 +533,9 @@ NAN     NAN      NAN        NAN        NAN
                                 self.pollutant_HC: 2, self.pollutant_PM: 3,
                                 self.pollutant_FC: 4}
 
-        # Updated emission factor coefficients and equations for gasoline and
-        # diesel passenger cars (PC) with emission standard higher than Euro
-        # 5. (Ref. the Excel file annex updated by Sept2014)
+        # Updated hot emission factor coefficients and equations for gasoline
+        # and diesel passenger cars (PC) with emission standard higher than
+        # Euro 5. (Ref. the Excel file annex updated by Sept2014)
         self.pc_parameter = numpy.empty((7, 3, 4, 12), dtype = float)
         self.pc_parameter.fill(numpy.nan)
         ## Correspondence between strings and integer attributes for passenger
@@ -572,7 +574,7 @@ NAN     NAN      NAN        NAN        NAN
                 = [float(x) for x in line_split[5 : 17]]
         pc_file.close()
 
-        # Emission factor coefficients and equations for light commercial
+        # Hot emission factor coefficients and equations for light commercial
         # vehicles of emission standard higher than Euro 5. ("LDVs" for light
         # duty vehicles in the Excel file of the inventory guide book.)
         ## Initialization
@@ -602,10 +604,10 @@ NAN     NAN      NAN        NAN        NAN
                 = [float(x) for x in line_split[5 : 17]]
         ldv_file.close()
 
-        # Emission factor coefficients and equations for heavy duty vehicles
-        # and buses.
-        # Converting the CSV file into a multidimensional array.
-        # Initialization of parameters for heavy duty vehicles.
+        # Hot emission factor coefficients and equations for heavy duty
+        # vehicles and buses.
+        # Converting the CSV file into a multidimensional
+        # array.  Initialization of parameters for heavy duty vehicles.
         self.hdv_parameter = numpy.empty((2, 20, 8, 5, 3, 7, 10),
                                          dtype = float)
         self.hdv_parameter.fill(numpy.nan)
@@ -616,15 +618,15 @@ NAN     NAN      NAN        NAN        NAN
         # Index of vehicle types of heavy duty vehicles (hdv) and buses.
         self.index_vehicle_type \
             = {self.vehicle_type_passenger_car: None,
-               self.vehicle_type_light_commercial_vehicule: None,
+               self.vehicle_type_light_commercial_vehicle: None,
                self.vehicle_type_heavy_duty_vehicle: 0,
                self.vehicle_type_bus: 1,
                self.vehicle_type_moped: None,
                self.vehicle_type_motorcycle: None}
-        corr_hdv_type \
-            =  {"Gasoline >3.5 t": self.hdv_type_gasoline_3_5,
-                "Rigid <=7.5 t": self.hdv_type_rigid_7_5,
-                "Rigid 7.5 - 12 t": self.hdv_type_rigid_7_5_12,
+        self.corr_hdv_type \
+            =  {"Gasoline >3.5 t": self.hdv_type_gasoline_3p5,
+                "Rigid <=7.5 t": self.hdv_type_rigid_7p5,
+                "Rigid 7.5 - 12 t": self.hdv_type_rigid_7p5_12,
                 "Rigid 12 - 14 t": self.hdv_type_rigid_12_14,
                 "Rigid 14 - 20 t": self.hdv_type_rigid_14_20,
                 "Rigid 20 - 26 t": self.hdv_type_rigid_20_26,
@@ -637,9 +639,9 @@ NAN     NAN      NAN        NAN        NAN
                 "Articulated 34 - 40 t": self.hdv_type_articulated_34_40,
                 "Articulated 40 - 50 t": self.hdv_type_articulated_40_50,
                 "Articulated 50 - 60 t": self.hdv_type_articulated_50_60,
-                "Urban Buses Midi <=15 t": self.bus_type_urban_15,
+                "Urban Buses Midi <=15 t": self.bus_type_urban_less_15,
                 "Urban Buses Standard 15 - 18 t": self.bus_type_urban_15_18,
-                "Urban Buses Articulated >18 t": self.bus_type_urban_18,
+                "Urban Buses Articulated >18 t": self.bus_type_urban_more_18,
                 "Coaches Standard <=18 t": self.bus_type_coach_standard_less_18,
                 "Coaches Articulated >18 t": self.bus_type_coach_articulated_more_18}
         corr_tech = {"Conventional": self.class_hdv_Conventional,
@@ -650,16 +652,16 @@ NAN     NAN      NAN        NAN        NAN
                      "HD Euro V - EGR": self.class_hdv_Euro_V_EGR,
                      "HD Euro V - SCR": self.class_hdv_Euro_V_SCR,
                      "HD Euro VI": self.class_hdv_Euro_VI}
-        corr_load = {"0": self.hdv_load_0,
-                     "50": self.hdv_load_50,
-                     "100": self.hdv_load_100}
-        corr_slope = {"0%": self.slope_0,
-                      "-6%": self.slope_negative_6,
-                      "-4%": self.slope_negative_4,
-                      "-2%": self.slope_negative_2,
-                      "2%": self.slope_2,
-                      "4%": self.slope_4,
-                      "6%": self.slope_6}
+        self.corr_load = {"0": self.hdv_load_0,
+                          "50": self.hdv_load_50,
+                          "100": self.hdv_load_100}
+        self.corr_slope = {"0%": self.slope_0,
+                           "-6%": self.slope_negative_6,
+                           "-4%": self.slope_negative_4,
+                           "-2%": self.slope_negative_2,
+                           "2%": self.slope_2,
+                           "4%": self.slope_4,
+                           "6%": self.slope_6}
         hdv_file = open(hdv_parameter_file, "r")
         for line in hdv_file.readlines():
             line_split = [s.strip() for s in line.split(",")]
@@ -675,11 +677,11 @@ NAN     NAN      NAN        NAN        NAN
                 hdv_tech = line_split[3]
             i_hdv_or_bus \
                 = self.index_vehicle_type[corr_hdv_or_bus[line_split[0]]]
-            i_hdv_type = corr_hdv_type[line_split[1]]
+            i_hdv_type = self.corr_hdv_type[line_split[1]]
             i_hdv_tech = corr_tech[hdv_tech]
             i_pollutant = self.index_pollutant[corr_pollutant[line_split[4]]]
-            i_hdv_load = corr_load[line_split[5]]
-            i_hdv_slope = corr_slope[line_split[6]]
+            i_hdv_load = self.corr_load[line_split[5]]
+            i_hdv_slope = self.corr_slope[line_split[6]]
             self.hdv_parameter[i_hdv_or_bus, i_hdv_type, i_hdv_tech,
                                i_pollutant, i_hdv_load, i_hdv_slope] \
                 = [float(x) for x in line_split[8 : 18]]
@@ -693,7 +695,7 @@ NAN     NAN      NAN        NAN        NAN
         self.moto_parameter.fill(numpy.nan)
         ## Correspondence between strings and integer attributes in this class
         ## for motorcycles
-        corr_engine_type \
+        self.corr_engine_type \
             = {"2-Stroke": self.engine_type_two_stroke_more_50,
                "4-Stroke < 250": self.engine_type_four_stroke_50_250,
                "4-Stroke 250-750": self.engine_type_four_stroke_250_750,
@@ -718,7 +720,7 @@ NAN     NAN      NAN        NAN        NAN
             if line_split[0] == "Engine type":
                 continue
             i_engine_type \
-                = self.index_moto_engine_type[corr_engine_type[line_split[0]]]
+                = self.index_moto_engine_type[self.corr_engine_type[line_split[0]]]
             i_pollutant = self.index_pollutant[corr_pollutant[line_split[1]]]
             i_copert_class \
                 = self.index_copert_class_moto[corr_copert_class[line_split[2]]]
@@ -1138,7 +1140,7 @@ NAN     NAN      NAN        NAN        NAN
                               self.class_Euro_3, self.class_Euro_4]
 
         if copert_class == self.class_Euro_3_GDI:
-            raise Exception, "Class Euro_3_GDI has no emission factor " \
+            raise Exception, "Class Euro_3_GDI has no hot emission factor " \
                 + "formula in case of diesel cars."
 
         V = speed
@@ -1167,7 +1169,7 @@ NAN     NAN      NAN        NAN        NAN
                     if engine_capacity < 1.4:
                         a, b, c, d, e, f = self.efc_diesel_passenger_car\
                                            [pollutant][copert_index]\
-                                           [self.engine_capacity_less_1_4]
+                                           [self.engine_capacity_less_1p4]
                         if math.isnan(a) and copert_class <= self.class_Euro_3:
                             raise Exception, "There is no formula to " \
                                 "calculate hot emission factors of " \
@@ -1178,7 +1180,7 @@ NAN     NAN      NAN        NAN        NAN
                     elif engine_capacity < 2.0:
                         a, b, c, d, e, f = self.efc_diesel_passenger_car\
                                            [pollutant][copert_index]\
-                                           [self.engine_capacity_1_4_to_2]
+                                           [self.engine_capacity_1p4_to_2]
                     else:
                         a, b, c, d, e, f = self.efc_diesel_passenger_car\
                                            [pollutant][copert_index]\
@@ -1212,7 +1214,8 @@ NAN     NAN      NAN        NAN        NAN
                         raise Exception, "The input speed must be in the  " \
                             + "range of [" + str(round(Vmin, 1)) + ", " \
                             + str(round(Vmax, 1)) + "] when calculating " \
-                            "hot emission factors for passenger cars."
+                            "hot emission factors for passenger cars " \
+                            "with emission standard of Euro 5 or higher."
                     emission_factor \
                         = self.list_equation_pc_ldv[int(N_eq)](self, a, b, c,
                                                                d, e, f, g, h,
@@ -1248,7 +1251,7 @@ NAN     NAN      NAN        NAN        NAN
                    and pollutant == self.pollutant_HC:
                     raise Exception, "There is no formula to calculate hot " \
                         "emission factors for HC when engine type is " \
-                        "diesel, with emission standard is Conventional " \
+                        "diesel, with emission standard of Conventional " \
                         "or Euro 1."
                 else:
                     Vmin, Vmax, a, b, c \
@@ -1313,6 +1316,12 @@ NAN     NAN      NAN        NAN        NAN
                             hdv_copert_class, pollutant,
                             load, slope, **kwargs):
         V = speed
+        name_hdv_type \
+            = self.corr_hdv_type.keys()[self.corr_hdv_type.values().index(hdv_type)]
+        name_slope \
+            = self.corr_slope.keys()[self.corr_slope.values().index(slope)]
+        name_load \
+            = self.corr_load.keys()[self.corr_load.values().index(load)]
         i_hdv_or_bus = self.index_vehicle_type[vehicle_category]
         i_hdv_type = hdv_type
         i_hdv_copert_class = hdv_copert_class
@@ -1327,7 +1336,9 @@ NAN     NAN      NAN        NAN        NAN
                 raise Exception, "The input speed must be in the " \
                     + "range of [" + str(round(Vmin, 1)) + ", " \
                     + str(round(Vmax, 1)) + "] when calculating hot " \
-                    "emission factors for heavy duty vehicles."
+                    "emission factors for heavy duty vehicles of type " \
+                    + name_hdv_type + " when the charge is " + name_load \
+                    + "% and the slope is " + name_slope + "."
             emission_factor = self.list_equation_hdv[int(N_eq)](self, a, b, c,
                                                                 d, e, f, g, V)
         else:
@@ -1367,6 +1378,8 @@ NAN     NAN      NAN        NAN        NAN
                             self.class_Euro_3] \
             and pollutant != self.pollutant_VOC:
             i_engine_type = self.index_moto_engine_type[engine_type]
+            name_engine_type \
+                = self.corr_engine_type.keys()[self.corr_engine_type.values().index(engine_type)]
             i_pollutant = self.index_pollutant[pollutant]
             i_copert_class = self.index_copert_class_moto[copert_class]
             Vmin, Vmax, a5, a4, a3, a2, a1, a0 \
@@ -1375,8 +1388,9 @@ NAN     NAN      NAN        NAN        NAN
             if V < Vmin or V > Vmax:
                 raise Exception, "The input speed must be in the " \
                     + "range of [" + str(round(Vmin, 1)) + ", " \
-                    + str(round(Vmax, 1)) + "] when calculating hot " \
-                    "emission factors for motorcycles."
+                    + str(round(Vmax, 1)) + "] when calculating " \
+                    "emission factors for motorcycles when engine type is " \
+                    + name_engine_type + "."
             else:
                 return self.Eq_56(a0, a1, a2, a3, a4, a5, V)
         else:
