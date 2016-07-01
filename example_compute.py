@@ -69,7 +69,7 @@ print c.HEFLightCommercialVehicle(pollutant = c.pollutant_CO,
 # Prints the hot emission factor (g/veh/km) of gasoline and diesel heavy duty
 # vehicles (HDVs) and buses for CO.
 ## for HDV
-print c.HEFHeavyDutyVehicle(speed = 50,
+print c.HEFHeavyDutyVehicle(speed = 30,
                             vehicle_category = c.vehicle_type_heavy_duty_vehicle,
                             hdv_type = c.hdv_type_rigid_14_20,
                             hdv_copert_class = c.class_hdv_Euro_III,
@@ -78,7 +78,7 @@ print c.HEFHeavyDutyVehicle(speed = 50,
                             slope = c.slope_4)
 
 ## for buses
-print c.HEFHeavyDutyVehicle(speed = 50,
+print c.HEFHeavyDutyVehicle(speed = 30,
                             vehicle_category = c.vehicle_type_bus,
                             hdv_type = c.bus_type_urban_18,
                             hdv_copert_class = c.class_hdv_Euro_III,

@@ -799,8 +799,8 @@ NAN     NAN      NAN        NAN        NAN
         if speed == 0.0:
             return 0.0
         else:
+            V = speed
             if copert_class <= self.class_Euro_4:
-                V = speed
                 if V < 10. or V > 130. :
                     raise Exception, "There is no formula to calculate hot " \
                         "emission factors when the speed is lower than " \
@@ -1099,7 +1099,12 @@ NAN     NAN      NAN        NAN        NAN
                     i_pollutant = self.index_pollutant[pollutant]
                 a, b, c, d, e, f, g, h, rf, Vmin, Vmax, N_eq \
                     = self.pc_parameter[i_engine, i_copert_class, i_pollutant]
-                V = min(max(Vmin, speed), Vmax)
+                if V < Vmin or V > Vmax:
+                    raise Exception, "The input speed must be in the range " \
+                        + "of [" + str(round(Vmin, 1)) + ", " \
+                        + str(round(Vmax, 1)) + "] when calculating hot " \
+                        "emission factors for passenger cars with emission " \
+                        "standard of Euro 5 or higher."
                 emission_factor \
                     = self.list_equation_pc_ldv[int(N_eq)](self, a, b, c, d,
                                                            e, f, g, h, rf, V)
@@ -1203,12 +1208,16 @@ NAN     NAN      NAN        NAN        NAN
                     a, b, c, d, e, f, g, h, rf, Vmin, Vmax, N_eq \
                         = self.pc_parameter[i_engine, i_copert_class,
                                             i_pollutant]
+                    if V < Vmin or V > Vmax:
+                        raise Exception, "The input speed must be in the  " \
+                            + "range of [" + str(round(Vmin, 1)) + ", " \
+                            + str(round(Vmax, 1)) + "] when calculating " \
+                            "hot emission factors for passenger cars."
                     emission_factor \
                         = self.list_equation_pc_ldv[int(N_eq)](self, a, b, c,
                                                                d, e, f, g, h,
                                                                rf, V)
                     return emission_factor
-
 
 
     # Definition of Hot Emission Factor (HEF) for light commercial vehicles.
@@ -1246,8 +1255,15 @@ NAN     NAN      NAN        NAN        NAN
                            = self.ldv_parameter_pre_euro_1[engine_type,
                                                            i_pollutant,
                                                            i_copert_class,:]
-                    V = min(max(Vmin, speed), Vmax)
-                    return self.quadratic(a, b, c, V)
+                    if V < Vmin or V > Vmax:
+                        raise Exception, "The input speed must be in the " \
+                            + "range of [" + str(round(Vmin, 1)) + ", " \
+                            + str(round(Vmax, 1)) + "] when calculating " \
+                            "hot emission factors for light commercial " \
+                            "vehicles, with emission standard of " \
+                            "Conventional or Euro 1."
+                    else:
+                        return self.quadratic(a, b, c, V)
             if copert_class >= self.class_Euro_2 \
                and copert_class <= self.class_Euro_4:
                 emission_factor_euro_1 \
@@ -1279,7 +1295,12 @@ NAN     NAN      NAN        NAN        NAN
                 a, b, c, d, e, f, g, h, rf, Vmin, Vmax, N_eq \
                     = self.ldv_parameter[engine_type, i_copert_class,
                                          i_pollutant]
-                V = min(max(Vmin, speed), Vmax)
+                if V < Vmin or V > Vmax:
+                    raise Exception, "The input speed must be in the " \
+                        + "range of [" + str(round(Vmin, 1)) + ", " \
+                        + str(round(Vmax, 1)) + "] when calculating hot " \
+                        "emission factors for light commercial vehicles, " \
+                        "with emission standard of Euro 5 or higher."
                 emission_factor \
                     = self.list_equation_pc_ldv[int(N_eq)](self, a, b, c, d,
                                                            e, f, g, h, rf, V)
@@ -1291,6 +1312,7 @@ NAN     NAN      NAN        NAN        NAN
     def HEFHeavyDutyVehicle(self, speed, vehicle_category, hdv_type,
                             hdv_copert_class, pollutant,
                             load, slope, **kwargs):
+        V = speed
         i_hdv_or_bus = self.index_vehicle_type[vehicle_category]
         i_hdv_type = hdv_type
         i_hdv_copert_class = hdv_copert_class
@@ -1300,8 +1322,12 @@ NAN     NAN      NAN        NAN        NAN
         a, b, c, d, e, f, g, Vmin, Vmax, N_eq \
             = self.hdv_parameter[i_hdv_or_bus, hdv_type, i_hdv_copert_class,
                                  i_pollutant, i_load, i_slope]
-        V = min(max(Vmin, speed), Vmax)
         if N_eq >= 0:
+            if V < Vmin or V > Vmax:
+                raise Exception, "The input speed must be in the " \
+                    + "range of [" + str(round(Vmin, 1)) + ", " \
+                    + str(round(Vmax, 1)) + "] when calculating hot " \
+                    "emission factors for heavy duty vehicles."
             emission_factor = self.list_equation_hdv[int(N_eq)](self, a, b, c,
                                                                 d, e, f, g, V)
         else:
@@ -1335,6 +1361,7 @@ NAN     NAN      NAN        NAN        NAN
     # Definition of Emission Factor (EF) for motorcycles.
     def EFMotorcycle(self, pollutant, speed, engine_type, copert_class,
                      **kwargs):
+        V = speed
         if copert_class in [self.class_Improved_Conventional,
                             self.class_Euro_1, self.class_Euro_2,
                             self.class_Euro_3] \
@@ -1345,8 +1372,13 @@ NAN     NAN      NAN        NAN        NAN
             Vmin, Vmax, a5, a4, a3, a2, a1, a0 \
                 = self.moto_parameter[i_engine_type, i_pollutant,
                                       i_copert_class]
-            V = min(max(Vmin, speed), Vmax)
-            return self.Eq_56(a0, a1, a2, a3, a4, a5, V)
+            if V < Vmin or V > Vmax:
+                raise Exception, "The input speed must be in the " \
+                    + "range of [" + str(round(Vmin, 1)) + ", " \
+                    + str(round(Vmax, 1)) + "] when calculating hot " \
+                    "emission factors for motorcycles."
+            else:
+                return self.Eq_56(a0, a1, a2, a3, a4, a5, V)
         else:
             raise Exception, "Only formulas for motorcycles with emission " \
                 "standard of Conventional, Euro 1 - Euro 3 are available, " \
