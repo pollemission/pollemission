@@ -445,7 +445,7 @@ NAN        NAN        NAN        NAN        NAN        NAN
 -1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
 -1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
 -1.21e18   1.63e20    1.79e18    2.89e19    1.17e16    4.09e18
-   """
+"""
 
     # Hot emission factor coefficient ("efc"), for diesel passenger cars.
     efc_diesel_passenger_car\
