@@ -175,6 +175,12 @@ class Copert:
     EF_31 = lambda self, a, b, c, d, e, f, V : \
             a + (b / (1 + math.exp((-1*c) + d * math.log(V) + e * V)))
 
+    # Generic function to calculate cold-start emission quotient (ref. EEA
+    # emission inventory guidebook 2013, part 1.A.3.b, Road transportation,
+    # version updated in Sept. 2014, page 62, table 3-43).
+    cold_start_eq = lambda self, A, B, C, ta, V : \
+                    A * V + B * ta + C
+
     # Generic functions to calculate hot emissions factors for passenger cars
     # and light commercial vehicles. (ref. the attached annex Excel file of
     # EMEP EEA emission inventory guidebook, updated September 2014).
@@ -349,6 +355,44 @@ NAN       NAN      NAN       NAN       NAN       NAN
         = numpy.fromstring(emission_factor_string, sep = ' ')
     efc_gasoline_passenger_car_fc.shape = (1, 13, 6)
 
+
+    # Data table for over-emission e_cold / e_hot for Euro 1 and later
+    # gasoline vehicles(ref. EEA emission inventory guidebook 2013, part
+    # 1.A.3.b, Road transportation, version updated in Sept. 2014, page 62,
+    # Table 3-43).
+    cold_start_emission_quotient_string \
+        = """
+0.156       -0.155      3.519
+0.538       -0.373      -6.24
+8.032e-2    -0.444      9.826
+0.121       -0.146      3.766
+0.299       -0.286      -0.58
+5.03e-2     -0.363      8.604
+7.82e-2     -0.105      3.116
+0.193       -0.194      0.305
+3.21e-2     -0.252      6.332
+4.61e-2     7.38e-3     0.755
+5.13e-2     2.34e-2     0.616
+NAN         NAN         NAN
+4.58e-2     7.47e-3     0.764
+4.84e-2     2.28e-2     0.685
+NAN         NAN         NAN
+3.43e-2     5.66e-3     0.827
+3.75e-2     1.72e-2     0.728
+NAN         NAN         NAN
+0.154       -0.134      4.937
+0.323       -0.240      0.301
+9.92e-2     -0.355      8.967
+0.157       -0.207      7.009
+0.282       -0.338      4.098
+4.76e-2     -0.477      13.44
+8.14e-2     -0.165      6.464
+0.116       -0.229      5.739
+1.75e-2     -0.346      10.462
+"""
+    cold_start_emission_quotient \
+        = numpy.fromstring(cold_start_emission_quotient_string, sep = ' ')
+    cold_start_emission_quotient.shape = (3, 3, 3, 3)
 
     # Data table to compute hot emission factor for diesel passenger cars from
     # copert_class Euro 1 to Euro 6c, except for FC.  (Ref. EEA emission
@@ -1112,6 +1156,281 @@ NAN     NAN      NAN        NAN        NAN
                                                            e, f, g, h, rf, V)
                 return emission_factor
 
+
+    # Definition of cold-start emission quotient (e_cold / e_hot).
+    def ColdStartEmissionQuotient(self, vehicle_type, engine_type, pollutant,
+                                  speed, copert_class, engine_capacity,
+                                  ambient_temperature, **kwargs):
+        V = speed
+        if (vehicle_type == self.vehicle_type_passenger_car or \
+            vehicle_type == self.vehicle_type_light_commercial_vehicle):
+            if engine_type == self.engine_type_gasoline:
+               if vehicle_type == self.vehicle_type_passenger_car:
+                   if copert_class < self.class_Euro_1:
+                       if ambient_temperature < -10:
+                           raise Exception, "There is no formula for " \
+                               "calculating the cold-start emission " \
+                               "quotient when the ambient temperature is " \
+                               "lower than -10.0 Celsius degrees. "
+                       elif ambient_temperature > 30:
+                           return 1.0
+                       else:
+                           if pollutant == self.pollutant_CO:
+                               return 3.7 - 0.09 * ambient_temperature
+                           elif pollutant == self.pollutant_NOx:
+                               return 1.14 - 0.006 * ambient_temperature
+                           elif pollutant == self.pollutant_VOC:
+                               return 2.8 - 0.06 * ambient_temperature
+                           elif pollutant == self.pollutant_FC:
+                               return 1.47 - 0.009 * ambient_temperature
+                           else:
+                               raise Exception, "There is no formula to " \
+                                   "calculate the cold start emission "\
+                                   "quotient for conventional gasoline " \
+                                   "passenger cars or light commercial " \
+                                   "vehicles, for pollutants of HC or PM."
+                   else:
+                       if pollutant == self.pollutant_FC:
+                           if ambient_temperature < -10:
+                               raise Exception, "There is no formula to " \
+                                   "calculate the cold-start emission " \
+                                   "quotient when the ambient temperature " \
+                                   "is lower than -10.0 Celsius degrees. "
+                           elif ambient_temperature > 30:
+                               return 1.0
+                           else:
+                               return -0.009 * ambient_temperature + 1.47
+                       elif pollutant == self.pollutant_PM \
+                       or pollutant == self.pollutant_HC:
+                           raise Exception, "There is no formula to " \
+                               "calculate the cold start emission quotient " \
+                               "for conventional gasoline passenger " \
+                               "cars, or light commercial vehicles, for " \
+                               "pollutants of HC or PM."
+                       else:
+                           if V < 5 or V > 45 or ambient_temperature < -20:
+                               raise Exception, "To calculate the cold " \
+                                   "start emission quotient for CO and NOx, "\
+                                   "the vehicle average speed must be in " \
+                                   "range [5, 45] and the ambient " \
+                                   "temperature must be higher than -20 " \
+                                   "Celsius degrees. "
+                           else:
+                               index_pollutant = {self.pollutant_CO: 0,
+                                                  self.pollutant_NOx: 1,
+                                                  self.pollutant_VOC: 2}
+                               i_pollu = index_pollutant[pollutant]
+                               index_engine_capacity \
+                                   = { self.engine_capacity_0p8_to_1p4: 0,
+                                       self.engine_capacity_1p4_to_2: 1,
+                                       self.engine_capacity_more_2: 2}
+                               i_engine_k \
+                                   = index_engine_capacity[engine_capacity]
+                               if pollutant == self.pollutant_CO \
+                                  or pollutant == self.pollutant_VOC :
+                                   if V <= 25 and ambient_temperature <= 15:
+                                       i_v_ta = 0
+                                   elif V > 25 and ambient_temperature <= 15:
+                                       i_v_ta = 1
+                                   else:
+                                       i_v_ta = 2
+                               else:
+                                   if V <= 25:
+                                       i_v_ta = 0
+                                   else:
+                                       i_v_ta = 1
+                               A, B, C \
+                                   = self.cold_start_emission_quotient[i_pollu,
+                                                                       i_engine_k,
+                                                                       i_v_ta]
+                               return self.cold_start_eq(A, B, C,
+                                                         ambient_temperature,
+                                                         V)
+               else:
+                   e_cold_passenger \
+                       = self.ColdStartEmissionQuotient(self.vehicle_type_passenger_car,
+                                                        self.engine_type_gasoline,
+                                                        pollutant,
+                                                        speed, copert_class,
+                                                        engine_capacity,
+                                                        ambient_temperature)
+                   e_cold_passenger_engine_more_2 \
+                       = self.ColdStartEmissionQuotient(self.vehicle_type_passenger_car,
+                                                        self.engine_type_gasoline,
+                                                        pollutant,
+                                                        speed, copert_class,
+                                                        self.engine_capacity_more_2,
+                                                        ambient_temperature)
+                   if copert_class < self.class_Euro_1:
+                       return e_cold_passenger
+                   else:
+                       return e_cold_passenger_engine_more_2
+            elif engine_type == self.engine_type_diesel:
+                if ambient_temperature < -10.0:
+                    raise Exception, "There is no formula " \
+                        "for calculating the cold-start emission " \
+                        "quotient when the ambient temperature is " \
+                        "lower than -10.0 Celsius degrees. "
+                elif ambient_temperature > 30.0:
+                    return 1.0
+                else:
+                    if pollutant == self.pollutant_CO:
+                        return 1.9 - 0.03 * ambient_temperature
+                    elif pollutant == self.pollutant_NOx:
+                        return 1.3 - 0.013 * ambient_temperature
+                    elif pollutant == self.pollutant_VOC:
+                        return 3.1 - 0.09 * ambient_temperature
+                    elif pollutant == self.pollutant_PM:
+                        return 3.1 - 0.1 * ambient_temperature
+                    elif pollutant == self.pollutant_FC:
+                        return 1.34 - 0.008 * ambient_temperature
+                    else:
+                        raise Exception, "There is no formula to " \
+                            "calculate the cold start emission quotient "\
+                            "for diesel passenger cars or light " \
+                            "commercial vehicles for HC or PM."
+        else:
+            raise Exception, "There is only formula to calculate cold-start "\
+                "emission for passenger cars or light commercial vehicles."
+
+
+    # Definition of the cold mileage percentage: the "Beta parameter".
+    def ColdStartMileagePercentage(self, vehicle_type, engine_type, pollutant,
+                         copert_class, engine_capacity, ambient_temperature,
+                         avg_trip_length, **kwargs):
+        if (vehicle_type == self.vehicle_type_passenger_car or \
+            vehicle_type == self.vehicle_type_light_commercial_vehicle) \
+            and engine_type == self.engine_type_gasoline:
+            if copert_class <= self.class_Euro_1:
+                return 0.6474 - 0.02545 * avg_trip_length \
+                    - (0.00974 - 0.000385 * avg_trip_length) \
+                    * ambient_temperature
+            elif copert_class > self.class_Euro_1 \
+            and copert_class <= self.class_Euro_4:
+                if pollutant == self.pollutant_PM \
+                   or pollutant == self.pollutant_FC \
+                   or pollutant == self.pollutant_HC:
+                    raise Exception, "For gasoline passenger cars with " \
+                        "emission standard from Euro 2 to Euro 4, there "\
+                        "is no formula for HC, PM and FC to calculate " \
+                        "the cold mileage percentage."
+                else:
+                    beta_euro_1 = self.ColdStartMileagePercentage(vehicle_type,
+                                                        engine_type,
+                                                        pollutant,
+                                                        self.class_Euro_1,
+                                                        engine_capacity,
+                                                        ambient_temperature,
+                                                        avg_trip_length)
+                    if copert_class == self.class_Euro_2:
+                        if pollutant == self.pollutant_CO:
+                            return beta_euro_1 * 0.72
+                        elif pollutant == self.pollutant_NOx:
+                            return beta_euro_1 * 0.72
+                        else:
+                            return beta_euro_1 * 0.56
+                    elif copert_class == self.class_Euro_3:
+                        if pollutant == self.pollutant_CO:
+                            return beta_euro_1 * 0.62
+                        elif pollutant == self.pollutant_NOx:
+                            return beta_euro_1 * 0.32
+                        else:
+                            return beta_euro_1 * 0.32
+                    else:
+                        if pollutant == self.pollutant_CO:
+                            return beta_euro_1 * 0.18
+                        elif pollutant == self.pollutant_NOx:
+                            return beta_euro_1 * 0.18
+                        else:
+                            return beta_euro_1 * 0.18
+            else:
+                raise Exception, "For gasoline passenger cars with " \
+                    "emission standard higher than Euro 5 (included), " \
+                    "there is no formula to calculate the beta-"\
+                    "parameter."
+        elif (vehicle_type == self.vehicle_type_passenger_car \
+        or vehicle_type == self.vehicle_type_light_commercial_vehicle) \
+        and engine_type == self.engine_type_diesel:
+            if vehicle_type == self.vehicle_type_passenger_car:
+                beta_gasoline_euro_1 \
+                    = self.ColdStartMileagePercentage(vehicle_type,
+                                                      self.engine_type_gasoline,
+                                                      pollutant,
+                                                      self.class_Euro_1,
+                                                      engine_capacity,
+                                                      ambient_temperature,
+                                                      avg_trip_length)
+                if copert_class <= self.class_Euro_4:
+                    return beta_gasoline_euro_1
+                elif copert_class <= self.class_Euro_6:
+                    if pollutant == self.pollutant_HC \
+                       or pollutant == self.pollutant_FC:
+                        raise Exception, "For diesel passenger cars, there " \
+                            "is no formula to calculate the beta parameter " \
+                            "for HC or FC."
+                    else:
+                        if pollutant == self.pollutant_NOx:
+                            if copert_class == self.class_Euro_5:
+                                return (1 - (-0.23)) * beta_gasoline_euro_1
+                            else:
+                                return (1 - 0.57) * beta_gasoline_euro_1
+                        elif pollutant == self.pollutant_PM:
+                            if copert_class == self.class_Euro_5:
+                                return (1 - 0.95) * beta_gasoline_euro_1
+                            else:
+                                return (1 - 0.95) * beta_gasoline_euro_1
+                        else:
+                            return beta_gasoline_euro_1
+                else:
+                    raise Exception, "For diesel passenger cars with " \
+                        "emission standard of Euro 6c, there " \
+                        "is no formula to calculate the beta parameter."
+
+            else:
+                beta_diesel_passenger \
+                    = self.ColdStartMileagePercentage(self.vehicle_type_passenger_car,
+                                                      self.engine_type_diesel,
+                                                      pollutant,
+                                                      copert_class,
+                                                      engine_capacity,
+                                                      ambient_temperature,
+                                                      avg_trip_length)
+                if copert_class <= self.class_Euro_2:
+                    return beta_diesel_passenger
+                else:
+                    if pollutant == self.pollutant_HC \
+                       or pollutant == self.pollutant_FC:
+                        raise Exception, "For diesel light commercial cars, "\
+                            "there is no formula to calculate the beta-" \
+                            "parameter for HC and FC."
+                    else:
+                        if copert_class == self.class_Euro_3:
+                            if pollutant == self.pollutant_CO:
+                                return (1 - 0.18) * beta_diesel_passenger
+                            elif pollutant == self.pollutant_NOx:
+                                return (1 - 0.16) * beta_diesel_passenger
+                            elif pollutant == self.pollutant_VOC:
+                                return (1 - 0.38) * beta_diesel_passenger
+                            else:
+                                return (1 - 0.33) * beta_diesel_passenger
+                        elif copert_class == self.class_Euro_4:
+                            if pollutant == self.pollutant_CO:
+                                return (1 - 0.35) * beta_diesel_passenger
+                            elif pollutant == self.pollutant_NOx:
+                                return (1 - 0.32) * beta_diesel_passenger
+                            elif pollutant == self.pollutant_VOC:
+                                return (1 - 0.77) * beta_diesel_passenger
+                            else:
+                                return (1 - 0.65) * beta_diesel_passenger
+                        else:
+                            raise Exception, "For diesel passenger cars " \
+                                "with emission standard higher than Euro 5" \
+                                "(included), there is no formula to "\
+                                "calculate the beta-parameter."
+        else:
+            raise Exception, "There are only formula for gasoline and " \
+                "diesel passenger cars or light commercial cars to " \
+                "calculate the beta-parameter for cold-start emissions."
 
 
     # Definition of Hot Emission Factor (HEF) for diesel passenger cars.
