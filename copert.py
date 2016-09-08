@@ -74,15 +74,16 @@ class Copert:
     engine_type_hybrids = 4
     engine_type_E85 = 5
     engine_type_CNG = 6
-    engine_type_two_stroke_less_50 = 7
-    engine_type_two_stroke_more_50 = 8
-    engine_type_four_stroke_less_50 = 9
-    engine_type_four_stroke_50_250 = 10
-    engine_type_four_stroke_250_750 = 11
-    engine_type_four_stroke_more_750 = 12
+    engine_type_moped_two_stroke_less_50 = 7
+    engine_type_moto_two_stroke_more_50 = 8
+    engine_type_moped_four_stroke_less_50 = 9
+    engine_type_moto_four_stroke_50_250 = 10
+    engine_type_moto_four_stroke_250_750 = 11
+    engine_type_moto_four_stroke_more_750 = 12
 
     # Definition of the engine capacity used by COPERT.
-    engine_capacity_less_1p4 = 0
+    engine_capacity_less_0p8 = -1
+    engine_capacity_0p8_to_1p4 = 0
     engine_capacity_1p4_to_2 = 1
     engine_capacity_more_2 = 2
 
@@ -740,15 +741,15 @@ NAN     NAN      NAN        NAN        NAN
         ## Correspondence between strings and integer attributes in this class
         ## for motorcycles
         self.corr_engine_type \
-            = {"2-Stroke": self.engine_type_two_stroke_more_50,
-               "4-Stroke < 250": self.engine_type_four_stroke_50_250,
-               "4-Stroke 250-750": self.engine_type_four_stroke_250_750,
-               "4-Stroke > 750": self.engine_type_four_stroke_more_750}
+            = {"2-Stroke": self.engine_type_moto_two_stroke_more_50,
+               "4-Stroke < 250": self.engine_type_moto_four_stroke_50_250,
+               "4-Stroke 250-750": self.engine_type_moto_four_stroke_250_750,
+               "4-Stroke > 750": self.engine_type_moto_four_stroke_more_750}
         self.index_moto_engine_type \
-            = {self.engine_type_two_stroke_more_50: 0,
-               self.engine_type_four_stroke_50_250: 1,
-               self.engine_type_four_stroke_250_750: 2,
-               self.engine_type_four_stroke_more_750: 3}
+            = {self.engine_type_moto_two_stroke_more_50: 0,
+               self.engine_type_moto_four_stroke_50_250: 1,
+               self.engine_type_moto_four_stroke_250_750: 2,
+               self.engine_type_moto_four_stroke_more_750: 3}
         corr_copert_class \
             = {"Conventional": self.class_Improved_Conventional,
                "Euro 1": self.class_Euro_1, "Euro 2": self.class_Euro_2,
@@ -854,7 +855,7 @@ NAN     NAN      NAN        NAN        NAN
                         "cars with emission standard lower than Euro 4."
                 else:
                     if copert_class == self.class_PRE_ECE:
-                        if engine_capacity < 0.8:
+                        if engine_capacity == self.engine_capacity_less_0p8:
                             raise Exception, "There is no formula to "\
                                 "calculate hot emission factor of gasoline " \
                                 "passenger cars when the engine capacity is "\
@@ -872,10 +873,12 @@ NAN     NAN      NAN        NAN        NAN
                                 else:
                                     return self.constant(1.247)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(-0.00014, 0.0225,
                                                           1.173, V)
-                                elif engine_capacity < 2.0:
+                                elif engine_capacity \
+                                == self.engine_capacity_1p4_to_2:
                                     return self.quadratic(-0.00004, 0.0217,
                                                           1.360, V)
                                 else:
@@ -887,7 +890,7 @@ NAN     NAN      NAN        NAN        NAN
                                     "standard of pre-Euro."
                                 return None
                     elif copert_class == self.class_ECE_15_00_or_01:
-                        if engine_capacity < 0.8:
+                        if engine_capacity == self.engine_capacity_less_0p8:
                             raise Exception, "There is no formula to "\
                                 "calculate hot emission factor of gasoline " \
                                 "passenger cars when the engine capacity " \
@@ -906,10 +909,12 @@ NAN     NAN      NAN        NAN        NAN
                                 else:
                                     return self.power(4.85, -0.318, V)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(-0.00014, 0.0225,
                                                           1.173, V)
-                                elif engine_capacity < 2.0:
+                                elif engine_capacity \
+                                == self.engine_capacity_1p4_to_2:
                                     return self.quadratic(-0.00004, 0.0217,
                                                           1.360, V)
                                 else:
@@ -921,7 +926,7 @@ NAN     NAN      NAN        NAN        NAN
                                     "standard of pre-Euro."
                                 return None
                     elif copert_class == self.class_ECE_15_02:
-                        if engine_capacity < 0.8:
+                        if engine_capacity == self.engine_capacity_less_0p8:
                             raise Exception, "There is no formula to "\
                                 "calculate hot emission factor of gasoline " \
                                 "passenger cars when the engine capacity " \
@@ -941,10 +946,12 @@ NAN     NAN      NAN        NAN        NAN
                                     return self.quadratic(0.00009, -0.019,
                                                           1.95, V)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.00018, -0.0037,
                                                           1.479, V)
-                                elif engine_capacity < 2.0:
+                                elif engine_capacity \
+                                == self.engine_capacity_1p4_to_2:
                                     return self.quadratic(0.0002, -0.0038,
                                                           1.663, V)
                                 else:
@@ -956,7 +963,7 @@ NAN     NAN      NAN        NAN        NAN
                                     "standard of pre-Euro."
                                 return None
                     elif copert_class == self.class_ECE_15_03:
-                        if engine_capacity < 0.8:
+                        if engine_capacity == self.engine_capacity_less_0p8:
                              raise Exception, "There is no formula to "\
                                  "calculate hot emission factor of gasoline " \
                                  "passenger cars when the engine capacity " \
@@ -976,10 +983,12 @@ NAN     NAN      NAN        NAN        NAN
                                     return self.quadratic(0.00009, -0.019,
                                                           1.95, V)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.00025, -0.0084,
                                                           1.616, V)
-                                elif engine_capacity < 2.0:
+                                elif engine_capacity \
+                                == self.engine_capacity_1p4_to_2:
                                     return self.exponential(1.29, 0.0099, V)
                                 else:
                                     return self.quadratic(0.000294, -0.0112,
@@ -990,7 +999,7 @@ NAN     NAN      NAN        NAN        NAN
                                     "standard of pre-Euro."
                                 return None
                     elif copert_class == self.class_ECE_15_04:
-                        if engine_capacity < 0.8:
+                        if engine_capacity == self.engine_capacity_less_0p8:
                             raise Exception, "There is no formula to "\
                                 "calculate hot emission factor of gasoline " \
                                 "passenger cars when the engine capacity " \
@@ -1010,10 +1019,12 @@ NAN     NAN      NAN        NAN        NAN
                                     return self.quadratic(0.000179, -0.037,
                                                           2.608, V)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.000097, 0.003,
                                                           1.432, V)
-                                elif engine_capacity < 2.0:
+                                elif engine_capacity \
+                                == engine_capacity_1p4_to_2:
                                     return self.quadratic(0.000074, 0.013,
                                                           1.484, V)
                                 else:
@@ -1025,7 +1036,8 @@ NAN     NAN      NAN        NAN        NAN
                                     "standard of pre-Euro."
                                 return None
                     elif copert_class == self.class_Improved_Conventional:
-                        if engine_capacity < 0.8 or engine_capacity > 2.0:
+                        if engine_capacity == self.engine_capacity_less_0p8 \
+                           or engine_capacity == self.engine_capacity_more_2:
                             raise Exception, "There is no formula to " \
                                 "calculate hot emission factor of gasoline " \
                                 "passenger cars when the engine capacity " \
@@ -1034,21 +1046,24 @@ NAN     NAN      NAN        NAN        NAN
                                 "Conventional cars."
                         else:
                             if pollutant == self.pollutant_CO:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.002478, -0.294,
                                                           14.577, V)
                                 else:
                                     return self.quadratic(0.000957, -0.151,
                                                           8.273, V)
                             elif pollutant == self.pollutant_VOC:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.000201, -0.034,
                                                           2.189, V)
                                 else:
                                     return self.quadratic(0.000214, -0.034,
                                                           1.999, V)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.logarithm(-0.926, 0.719, V)
                                 else:
                                     return self.quadratic(0.000247, 0.0014,
@@ -1059,7 +1074,8 @@ NAN     NAN      NAN        NAN        NAN
                                     "emission standard of pre-Euro."
                                 return None
                     elif copert_class == self.class_Open_loop:
-                        if engine_capacity < 0.8 or engine_capacity > 2.0:
+                        if engine_capacity == self.engine_capacity_less_0p8 \
+                           or engine_capacity == self.engine_capacity_more_2:
                             raise Exception, "There is no formula to "\
                                 "calculate hot emission factor of gasoline " \
                                 "passenger cars when the engine capacity " \
@@ -1067,21 +1083,24 @@ NAN     NAN      NAN        NAN        NAN
                                 "for vehicle technology Open loop."
                         else:
                             if pollutant == self.pollutant_CO:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.002825, -0.377,
                                                           17.882, V)
                                 else:
                                     return self.quadratic(0.002029, -0.230,
                                                           9.446, V)
                             elif pollutant == self.pollutant_VOC:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.quadratic(0.000256, -0.0423,
                                                           2.185, V)
                                 else:
                                     return self.quadratic(0.000099, -0.016,
                                                           0.808, V)
                             elif pollutant == self.pollutant_NOx:
-                                if engine_capacity < 1.4:
+                                if engine_capacity \
+                                   == self.engine_capacity_0p8_to_1p4:
                                     return self.logarithm(-0.921, 0.616, V)
                                 else:
                                     return self.logarithm(-0.761, 0.515, V)
@@ -1126,14 +1145,7 @@ NAN     NAN      NAN        NAN        NAN
                                 = self.efc_gasoline_passenger_car[pollutant][copert_index]
                             return self.EF_25(a, b, c, d, e, f, V)
             else:
-                if engine_capacity < 0.8:
-                    i_engine = 0
-                elif engine_capacity >= 0.8 and engine_capacity < 1.4:
-                    i_engine = 1
-                elif engine_capacity >= 1.4 and engine_capacity < 2.0:
-                    i_engine = 2
-                else:
-                    i_engine = 3
+                i_engine = engine_capacity
                 i_copert_class = self.index_copert_class_pc[copert_class]
                 if pollutant == self.pollutant_VOC \
                    or pollutant == self.pollutant_FC:
@@ -1485,10 +1497,10 @@ NAN     NAN      NAN        NAN        NAN
             else:
                 if copert_class <= self.class_Euro_4:
                     copert_index = global_class_index.index(copert_class)
-                    if engine_capacity < 1.4:
+                    if engine_capacity == self.engine_capacity_0p8_to_1p4:
                         a, b, c, d, e, f = self.efc_diesel_passenger_car\
                                            [pollutant][copert_index]\
-                                           [self.engine_capacity_less_1p4]
+                                           [self.engine_capacity_0p8_to_1p4]
                         if math.isnan(a) and copert_class <= self.class_Euro_3:
                             raise Exception, "There is no formula to " \
                                 "calculate hot emission factors of " \
@@ -1496,7 +1508,7 @@ NAN     NAN      NAN        NAN        NAN
                                 + "diesel passenger cars of copert class " \
                                 + self.name_class_euro[copert_class] + ", "\
                                 + "with an engine capacity lower than 1.4 l."
-                    elif engine_capacity < 2.0:
+                    elif engine_capacity == self.engine_capacity_1p4_to_2:
                         a, b, c, d, e, f = self.efc_diesel_passenger_car\
                                            [pollutant][copert_index]\
                                            [self.engine_capacity_1p4_to_2]
@@ -1511,9 +1523,9 @@ NAN     NAN      NAN        NAN        NAN
                     else:
                         return self.EF_30(a, b, c, d, e, f, V)
                 else:
-                    if engine_capacity < 1.4:
+                    if engine_capacity == self.engine_capacity_0p8_to_1p4:
                         i_engine = 4
-                    elif engine_capacity >= 1.4 and engine_capacity < 2.0:
+                    elif engine_capacity == self.engine_capacity_1p4_to_2:
                         i_engine = 5
                     else:
                         i_engine = 6
@@ -1679,9 +1691,9 @@ NAN     NAN      NAN        NAN        NAN
                                self.pollutant_VOC: 2, self.pollutant_FC: 3,
                                self.pollutant_PM: 4}
             i_pollutant = index_pollutant[pollutant]
-            if engine_type == self.engine_type_two_stroke_less_50:
+            if engine_type == self.engine_type_moped_two_stroke_less_50:
                 return self.moped_parameter[0, i_copert_class, i_pollutant]
-            elif engine_type == self.engine_type_four_stroke_less_50:
+            elif engine_type == self.engine_type_mopet_four_stroke_less_50:
                 return self.moped_parameter[1, i_copert_class, i_pollutant]
         else:
             raise Exception, "Only formulas for mopeds with emission " \

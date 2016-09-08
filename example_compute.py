@@ -31,14 +31,15 @@ print c.Emission(pollutant = c.pollutant_CO,
                  vehicle_type = c.vehicle_type_passenger_car,
                  engine_type = c.engine_type_gasoline,
                  copert_class = c.class_ECE_15_00_or_01,
-                 engine_capacity = 1.4, # in l
-                 ambient_temperature = 20.) # in C deg
+                 engine_capacity = c.engine_capacity_1p4_to_2, # in l
+                 ambient_temperature = 20.0)
 
 # Prints the hot emission factor (g/veh/km) of gasoline passenger car for CO.
 print c.HEFGasolinePassengerCar(pollutant = c.pollutant_CO,
                                 speed = 60., # in km/h
                                 copert_class = c.class_Euro_5,
-                                engine_capacity = 1.4) # in l
+                                engine_capacity = c.engine_capacity_0p8_to_1p4) # in l
+
 # Another way to compute the same is to call 'Emission' (g/veh) with unitary
 # distance.
 print c.Emission(pollutant = c.pollutant_CO,
@@ -46,9 +47,9 @@ print c.Emission(pollutant = c.pollutant_CO,
                  distance = 1., # in km
                  vehicle_type = c.vehicle_type_passenger_car,
                  engine_type = c.engine_type_gasoline,
-                 copert_class = c.class_Euro_5,
-                 engine_capacity = 1.4, # in l
-                 ambient_temperature = 20.) # in C deg
+                 copert_class = c.class_Euro_3,
+                 engine_capacity = c.engine_capacity_0p8_to_1p4, # in l
+                 ambient_temperature = 25.) # in C deg
 
 
 # Prints the hot emission factor (g/veh/km) of gasoline and diesel light
@@ -89,10 +90,10 @@ print c.HEFHeavyDutyVehicle(speed = 30,
 # Prints the emission factor for mopeds and motorcycles.
 print c.EFMoped(speed = 50,
                 pollutant = c.pollutant_CO,
-                engine_type = c.engine_type_two_stroke_less_50,
+                engine_type = c.engine_type_moped_two_stroke_less_50,
                 copert_class = c.class_Euro_3)
 
 print c.EFMotorcycle(speed = 50,
                      pollutant = c.pollutant_CO,
-                     engine_type = c.engine_type_four_stroke_more_750,
+                     engine_type = c.engine_type_moto_four_stroke_more_750,
                      copert_class = c.class_Euro_3)

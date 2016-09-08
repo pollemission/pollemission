@@ -58,7 +58,10 @@ data_gasoline_proportion = numpy.loadtxt("input/gasoline_proportion.dat")
 # The three engine capacities are below 1.4 l, in [1.4 l, 2 l] and above 2
 # l. In practice, we assign the following capacities (each of which falls
 # uniquely in a category):
-engine_capacity = [1.3, 1.8, 2.1]
+# engine_capacity = [1.3, 1.8, 2.1]
+engine_capacity = [cop.engine_capacity_0p8_to_1p4,
+                   cop.engine_capacity_1p4_to_2]
+
 # Proportion of engines in each of the three capacities, for gasoline cars.
 data_engine_capacity_gasoline \
     = numpy.loadtxt("input/engine_capacity_gasoline.dat")
@@ -100,7 +103,7 @@ for i in range(Nlink):
 
     for t in range(2): # gasoline/diesel
         for c in range(Nclass):
-            for k in range(3): # engine capacities
+            for k in range(2): # engine capacities
                 if (copert_class[c] != cop.class_Improved_Conventional
                     and copert_class[c] != cop.class_Open_loop) \
                     or engine_capacity[k] <= 2.0:
