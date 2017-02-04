@@ -72,7 +72,7 @@ Definitions of Highway and Point objects, and associated retrieving function. Th
 Assume you want to compute the hot emission factor for CO, of a gasoline passenger car, whose average speed is 60, emission standard is Euro 4 and with engine capacity 1.4 l. Under Python shell, the result in g/km/veh is obtained this way:
 #+BEGIN_SRC python
 >>> import copert
->>> c = copert.Copert()
+>>> c = copert.Copert("input/PC_parameter.csv", "input/LDV_parameter.csv", "input/HDV_parameter.csv", "input/Moto_parameter.csv")
 >>> print c.HEFGasolinePassengerCar(pollutant = c.pollutant_CO, speed = 60, copert_class = c.class_Euro_4, engine_capacity = 1.4)
 0.247392398993
 #+END_SRC
