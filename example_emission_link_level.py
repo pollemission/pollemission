@@ -18,17 +18,11 @@
 # along with this file. If not, see http://www.gnu.org/licenses/.
 
 # This example file shows how to compute the hot emissions (in g) for
-# passenger cars and display the emission level of streets with OpenStreetMap.
-
-import matplotlib
-matplotlib.use('Agg')
+# passenger cars at link resolution, and save them into text file.
 
 import os
-import copert, osm_network
+import copert
 import numpy
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-import matplotlib.cm as cmx
 import sys
 
 cop = copert.Copert("input/PC_parameter.csv", "input/LDV_parameter.csv",
@@ -122,3 +116,9 @@ for i in range(Nlink):
                     e *= engine_type_distribution[t] \
                          * engine_capacity_distribution[t][k]
                     hot_emission[i] += e * p_passenger
+
+
+f_emission_link = "output/link_hot_emission.txt"
+numpy.savetxt(f_emission_link, hot_emission,  fmt = '%10.5f')
+
+## END ##
